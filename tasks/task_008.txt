@@ -1,0 +1,46 @@
+# Task ID: 8
+# Title: Tích hợp API YouTube cho đăng bài (Backend)
+# Status: pending
+# Dependencies: 3, 5
+# Priority: medium
+# Description: Triển khai logic backend sử dụng token đã lưu (Task 3) và nội dung bài đăng (Task 5) để thực hiện đăng video lên YouTube.
+# Details:
+1.  **Triển khai API wrapper cho YouTube Data API v3**: Tạo một service module (`app/services/youtube_service.py`) để chứa các hàm gọi đến YouTube Data API.
+    * Sử dụng thư viện `google-api-python-client`.
+    * Hàm cần có: tải lên video, thiết lập metadata (tiêu đề, mô tả, tags, categoryId), thiết lập quyền riêng tư (public, private, unlisted), tải lên thumbnail.
+2.  **Lấy `access_token` (và `refresh_token`) của kênh YouTube đích**: Từ `post_management_id` và `target_social_account_ids`, truy xuất token (đã giải mã) tương ứng từ `social_accounts`. Xử lý làm mới token nếu `access_token` hết hạn và có `refresh_token`.
+3.  **Chuẩn bị dữ liệu video**: Dựa trên `video_media_id`, `youtube_title`, `youtube_description`, `youtube_tags`, `thumbnail_media_id` từ `posts_management`, chuẩn bị payload và file video cho API call.
+4.  **Thực hiện đăng video**: Gọi hàm tải lên video trong API wrapper. Đây là quy trình resumable upload.
+5.  **Xử lý lỗi và retry logic**: Bắt lỗi từ API. YouTube API có giới hạn quota, cần xử lý.
+6.  **Cập nhật trạng thái sau khi đăng**: Cập nhật `is_posted_youtube = true/false`, `youtube_video_link`, `error_message_youtube` trong `posts_management`.
+
+# Test Strategy:
+1.  Kiểm tra đăng video thành công lên YouTube với đầy đủ metadata (tiêu đề, mô tả, tags, thumbnail).
+2.  Kiểm tra xử lý refresh token cho YouTube (nếu access token ban đầu hết hạn).
+3.  Kiểm tra xử lý lỗi (quota, video không hợp lệ, token sai) và cập nhật trạng thái bài đăng chính xác.
+
+# Subtasks:
+## 1. Nghiên cứu YouTube Data API v3 cho việc tải lên video [pending]
+### Dependencies: None
+### Description: Tìm hiểu các endpoint `Videos.insert` và quy trình resumable upload, cách thiết lập metadata, privacy status, thumbnail.
+### Details:
+Tham khảo tài liệu của Google. Chú ý đến các scope OAuth cần thiết (ví dụ: `https://www.googleapis.com/auth/youtube.upload`, `https://www.googleapis.com/auth/youtube`).
+
+## 2. Phát triển các hàm Backend để đăng video lên YouTube [pending]
+### Dependencies: 8.1
+### Description: Viết code trong `youtube_service.py` sử dụng `google-api-python-client` để tải video, metadata và thumbnail.
+### Details:
+Hàm nhận `access_token`, `video_file_path` (hoặc stream), `title`, `description`, `tags`, `privacy_status`, `thumbnail_file_path`. Thực hiện resumable upload. Xử lý response.
+
+## 3. Triển khai logic làm mới YouTube Access Token [pending]
+### Dependencies: 8.2
+### Description: Nếu YouTube `access_token` hết hạn, sử dụng `refresh_token` (nếu có) để lấy `access_token` mới từ Google OAuth 2.0 token endpoint.
+### Details:
+Trước khi gọi API YouTube, kiểm tra thời gian hết hạn của token (nếu có thông tin). Nếu sắp hết hạn hoặc API call trả về lỗi token hết hạn, dùng `refresh_token` để gọi `https://oauth2.googleapis.com/token` lấy token mới và cập nhật lại trong DB.
+
+## 4. Triển khai logic xử lý lỗi và cập nhật trạng thái bài đăng YouTube [pending]
+### Dependencies: 8.2, 8.3
+### Description: Bắt lỗi từ API YouTube, log lỗi, và cập nhật trạng thái vào bảng `posts_management`.
+### Details:
+Ví dụ, thêm các trường `status_youtube` (ENUM), `video_id_youtube`, `error_youtube` vào `PostsManagement`. Cập nhật các trường này sau mỗi lần thử đăng.
+

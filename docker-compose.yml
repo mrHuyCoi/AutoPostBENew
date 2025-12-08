@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: dangbai_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - dangbai_network
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: dangbai_filebeat
+    user: root
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs:ro
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    networks:
+      - dangbai_network
+    command: ["filebeat", "-e", "-strict.perms=false"]
+
+  # Flower - Celery monitoring dashboard
+  flower:
+    build: .
+    container_name: dangbai_flower
+    restart: unless-stopped
+    command: celery -A celery_worker.celery_app flower --port=5555 --broker_api=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - dangbai_network
+
+  # Application service (example - adjust based on your actual setup)
+  # dangbaitudong-api:
+  #   build: .
+  #   container_name: dangbaitudong-api
+  #   volumes:
+  #     - dangbaitudong_logs:/app/logs
+  #   environment:
+  #     - LOG_DIR=/app/logs
+  #     - ELASTICSEARCH_HOST=elasticsearch
+  #     - ELASTICSEARCH_PORT=9200
+  #     - ELASTICSEARCH_URL=http://192.168.1.73:9200
+  #   networks:
+  #     - dangbai_network
+  #     - shared_datanet
+
+volumes:
+  redis_data:
+  # Shared volume for logs - Filebeat will read from this
+  dangbaitudong_logs:
+    name: dangbaitudong_logs
+
+networks:
+  dangbai_network:
+    driver: bridge
+  # Connect to ChatbotMobileStore's network for Elasticsearch access
+  shared_datanet:
+    external: true
+    name: shared_datanet

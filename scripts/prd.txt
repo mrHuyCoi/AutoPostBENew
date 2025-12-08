@@ -1,0 +1,60 @@
+# Đăng Bài Tự Động - PRD (Product Requirements Document)
+
+## Tổng Quan Sản Phẩm
+Đăng Bài Tự Động là một nền tảng giúp người dùng đặt lịch và đăng bài tự động lên nhiều nền tảng mạng xã hội như Facebook, Instagram, Threads và YouTube. Ứng dụng nhắm đến các chủ cửa hàng và người dùng quản lý nhiều tài khoản mạng xã hội cùng lúc.
+
+## Đối Tượng Người Dùng
+- Chủ cửa hàng, doanh nghiệp vừa và nhỏ
+- Nhà quản lý nội dung (Content Managers)
+- Người dùng có nhiều tài khoản trên cùng một nền tảng mạng xã hội
+- Những người cần đăng bài theo lịch trình đều đặn
+
+## Yêu Cầu Chức Năng
+
+### 1. Xác Thực và Quản Lý Tài Khoản
+- Đăng ký, đăng nhập vào hệ thống
+- Kết nối và xác thực với các nền tảng mạng xã hội (Facebook, Instagram, Threads, YouTube)
+- Quản lý danh sách tài khoản mạng xã hội được kết nối
+
+### 2. Tạo và Quản Lý Nội Dung
+- Tải lên hình ảnh và video vào cloud storage
+- Soạn thảo nội dung bài đăng (text, caption)
+- Hỗ trợ xem trước bài đăng trước khi lên lịch
+- Lưu bài viết nháp để chỉnh sửa sau
+
+### 3. Lên Lịch Đăng Bài
+- Đặt thời gian đăng bài cụ thể (ngày, giờ)
+- Lên lịch đăng bài định kỳ (hàng ngày, hàng tuần, hàng tháng)
+- Hỗ trợ đăng cùng nội dung lên nhiều nền tảng/tài khoản cùng lúc
+- Xem và chỉnh sửa lịch đăng bài
+
+### 4. Đăng Bài Tự Động
+- Đăng bài tự động theo lịch đã đặt
+- Hỗ trợ đăng lên Facebook (bài viết, ảnh, video)
+- Hỗ trợ đăng lên Instagram (ảnh, video, stories)
+- Hỗ trợ đăng lên Threads (text, ảnh)
+- Hỗ trợ đăng lên YouTube (video)
+
+### 5. Theo Dõi và Báo Cáo
+- Theo dõi trạng thái đăng bài (đã đăng, chờ đăng, lỗi)
+- Thông báo khi bài đăng thành công hoặc thất bại
+- Xem thống kê bài đăng theo thời gian, nền tảng
+
+## Yêu Cầu Kỹ Thuật
+
+### Backend
+- Xây dựng API bằng FastAPI
+- Kết nối và sử dụng API của Facebook cho Facebook, Instagram, Threads
+- Kết nối và sử dụng API của YouTube
+- Sử dụng PostgreSQL làm cơ sở dữ liệu
+- Tích hợp với Cloud Storage để lưu trữ ảnh và video
+- Triển khai hệ thống scheduling cho việc đăng bài theo lịch
+
+### Bảo Mật
+- Xác thực OAuth cho các tài khoản mạng xã hội
+- Lưu trữ token xác thực an toàn
+- Bảo vệ thông tin người dùng và nội dung
+
+### Khả Năng Mở Rộng
+- Thiết kế hệ thống có khả năng mở rộng để hỗ trợ thêm nền tảng mạng xã hội trong tương lai
+- Khả năng xử lý số lượng lớn người dùng và bài đăng cùng lúc

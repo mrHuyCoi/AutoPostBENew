@@ -1,0 +1,58 @@
+# Task ID: 4
+# Title: Quản lý tải lên và lưu trữ media (Backend)
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Triển khai API backend cho phép tải lên hình ảnh và video, lưu trữ chúng trên cloud storage (ví dụ: AWS S3, Google Cloud Storage) và quản lý thông tin media trong cơ sở dữ liệu.
+# Details:
+1.  **Tích hợp với Cloud Storage**: Lựa chọn một nhà cung cấp cloud storage. Cài đặt SDK tương ứng (ví dụ: `boto3` cho AWS S3). Cấu hình credentials an toàn qua biến môi trường.
+2.  **Triển khai API tải lên hình ảnh**: Endpoint `/api/v1/media/upload/image` nhận file hình ảnh. Validate file (kích thước, loại). Tải file lên cloud storage. Lưu thông tin metadata (tên file, URL trên cloud, user_id, loại file) vào bảng `media_assets`.
+3.  **Triển khai API tải lên video**: Endpoint `/api/v1/media/upload/video` nhận file video. Validate file. Tải file lên cloud storage. Lưu metadata vào bảng `media_assets`.
+4.  **Triển khai xử lý hình ảnh cơ bản (nếu cần ở backend)**: Có thể xem xét tích hợp thư viện như Pillow để resize, tối ưu hóa hình ảnh trước khi tải lên, hoặc thực hiện việc này ở phía client/một service riêng.
+5.  **Triển khai xử lý video cơ bản (nếu cần ở backend)**: Chuyển đổi định dạng, nén video có thể phức tạp và nên được xử lý bằng dịch vụ chuyên biệt (ví dụ: AWS MediaConvert) hoặc một worker riêng. API này có thể chỉ nhận file và lưu trữ.
+6.  **Triển khai API quản lý media đã tải lên**: Endpoints để liệt kê media của người dùng, lấy chi tiết, xóa media (xóa file trên cloud storage và record trong DB).
+7.  **Thiết lập logic lưu trữ và truy xuất thông tin media**: Đảm bảo thông tin media trong bảng `media_assets` được liên kết đúng với người dùng và có thể được truy xuất dễ dàng.
+
+# Test Strategy:
+1.  Kiểm tra API tải lên hình ảnh và video thành công, file được lưu trên cloud storage và thông tin được ghi vào DB.
+2.  Kiểm tra API truy xuất danh sách media và chi tiết media.
+3.  Kiểm tra API xóa media (file trên cloud và record DB đều bị xóa).
+4.  Kiểm tra xử lý lỗi (file quá lớn, sai định dạng).
+
+# Subtasks:
+## 1. Nghiên cứu và chọn lựa Cloud Storage Provider [pending]
+### Dependencies: None
+### Description: Đánh giá các lựa chọn như AWS S3, Google Cloud Storage, Azure Blob Storage về chi phí, tính năng, dễ tích hợp.
+### Details:
+So sánh SDK, tài liệu, giới hạn miễn phí (nếu có), và các tính năng bảo mật. Quyết định một nhà cung cấp.
+
+## 2. Thiết kế tích hợp Cloud Storage [pending]
+### Dependencies: 4.1
+### Description: Lên kế hoạch chi tiết cách backend sẽ tương tác với cloud storage API.
+### Details:
+Xác định các hàm cần thiết (upload, download, delete, generate presigned URL nếu cần). Cấu hình bucket, permissions. Lưu trữ access keys an toàn.
+
+## 3. Triển khai API Backend tích hợp Cloud Storage [pending]
+### Dependencies: 4.2
+### Description: Viết code Python sử dụng SDK của cloud provider để thực hiện các thao tác tải lên, xóa file.
+### Details:
+Tạo một service module (ví dụ `app/services/cloud_storage.py`) chứa logic tương tác với cloud. Cài đặt SDK (ví dụ `boto3` cho S3).
+
+## 4. Phát triển API Backend cho chức năng tải lên media (hình ảnh, video) [pending]
+### Dependencies: 4.3
+### Description: Tạo các API endpoints cho phép người dùng tải file lên, sau đó backend sẽ lưu vào cloud storage.
+### Details:
+Sử dụng `UploadFile` của FastAPI. Tạo endpoints `/api/v1/media/upload/image` và `/api/v1/media/upload/video`. Validate file type, size. Gọi service ở 4.3 để upload. Lưu thông tin vào bảng `media_assets` (tham chiếu đến `id` của media này sẽ được dùng trong Task 5).
+
+## 5. Triển khai API Backend quản lý media (liệt kê, xóa) [pending]
+### Dependencies: 4.3, 4.4
+### Description: Tạo các API endpoints cho phép người dùng xem danh sách media của họ và xóa media.
+### Details:
+Endpoint GET `/api/v1/media/` để liệt kê media của user hiện tại. Endpoint DELETE `/api/v1/media/{media_id}` để xóa media (xóa file trên cloud và record trong DB).
+
+## 6. Kiểm thử và tối ưu hóa hệ thống tải lên và quản lý media [pending]
+### Dependencies: 4.5
+### Description: Thực hiện kiểm thử kỹ lưỡng và tối ưu hóa nếu cần.
+### Details:
+Test với các loại file, kích thước khác nhau. Kiểm tra xử lý lỗi. Đảm bảo an toàn và hiệu suất.
+

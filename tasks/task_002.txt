@@ -1,0 +1,57 @@
+# Task ID: 2
+# Title: Xây dựng hệ thống xác thực và quản lý người dùng
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Triển khai API cho phép người dùng đăng ký, đăng nhập, và quản lý thông tin tài khoản cá nhân. Sử dụng JWT để xác thực. //tạm thời bỏ qua task này
+# Details:
+1.  **Triển khai API endpoint đăng ký người dùng**: Endpoint `/api/v1/users/register` nhận `email`, `password`, `full_name`. Validate dữ liệu, hash mật khẩu, lưu người dùng mới vào DB.
+2.  **Triển khai API endpoint đăng nhập và tạo token JWT**: Endpoint `/api/v1/auth/login` nhận `username` (email) và `password`. Xác thực thông tin, nếu thành công, tạo và trả về `access_token` (JWT) và `refresh_token`.
+3.  **Triển khai API endpoint quản lý thông tin người dùng**: Endpoint `/api/v1/users/me` (GET) để lấy thông tin người dùng hiện tại (đã xác thực). Endpoint `/api/v1/users/me` (PUT) để cập nhật thông tin người dùng (ví dụ: `full_name`).
+4.  **Triển khai middleware (dependency) xác thực JWT**: Tạo một dependency để kiểm tra `access_token` trong header `Authorization`. Dependency này sẽ giải mã token, xác thực và trả về thông tin người dùng nếu token hợp lệ.
+5.  **Triển khai chức năng khôi phục mật khẩu (Password Recovery)**: Endpoint `/api/v1/auth/forgot-password` nhận email, tạo token reset, gửi email (giả lập hoặc tích hợp dịch vụ email). Endpoint `/api/v1/auth/reset-password` nhận token reset và mật khẩu mới.
+6.  **Thiết lập logic quản lý phiên đăng nhập và refresh token**: Endpoint `/api/v1/auth/refresh` nhận `refresh_token`, xác thực và cấp `access_token` mới.
+
+# Test Strategy:
+1.  Kiểm tra quá trình đăng ký người dùng mới, đăng nhập với thông tin chính xác và không chính xác.
+2.  Kiểm tra việc tạo và xác thực `access_token` và `refresh_token`. Bảo vệ endpoint yêu cầu xác thực.
+3.  Kiểm tra các API quản lý thông tin người dùng (lấy thông tin, cập nhật thông tin).
+4.  Kiểm tra quy trình khôi phục mật khẩu (gửi yêu cầu, reset mật khẩu với token).
+
+# Subtasks:
+## 1. Triển khai API đăng ký người dùng [pending]
+### Dependencies: None
+### Description: Xây dựng API endpoint cho phép người dùng mới tạo tài khoản.
+### Details:
+Tạo Pydantic schema cho request (UserCreate) và response (UserRead). Viết API route trong `app/api/v1/endpoints/users.py`. Sử dụng hàm CRUD đã tạo để lưu người dùng mới sau khi hash mật khẩu bằng `passlib`.
+
+## 2. Triển khai API đăng nhập người dùng [pending]
+### Dependencies: 2.1
+### Description: Xây dựng API endpoint cho phép người dùng đăng nhập và nhận JWT.
+### Details:
+Tạo Pydantic schema cho request (LoginRequest). Viết API route trong `app/api/v1/endpoints/auth.py`. Logic bao gồm xác thực email và mật khẩu (đã hash), sau đó tạo JWT access token và refresh token (sử dụng `python-jose`).
+
+## 3. Triển khai xử lý và xác thực JWT [pending]
+### Dependencies: 2.2
+### Description: Phát triển các hàm tiện ích để tạo, giải mã và xác thực JWT, cùng với dependency để bảo vệ routes.
+### Details:
+Viết các hàm trong `app/core/security.py` để tạo access token, refresh token, và verify token. Tạo dependency `get_current_active_user` sử dụng OAuth2PasswordBearer để trích xuất và xác thực token từ header, trả về model User.
+
+## 4. Triển khai API khôi phục mật khẩu [done]
+### Dependencies: 2.1
+### Description: Xây dựng chức năng cho phép người dùng khôi phục mật khẩu đã quên.
+### Details:
+Tạo API endpoint `/forgot-password` để nhận email, tạo token reset đặc biệt lưu vào DB với thời gian hết hạn. Giả lập gửi email. Tạo endpoint `/reset-password` nhận token và mật khẩu mới, xác thực token, cập nhật mật khẩu cho user.
+
+## 5. Tích hợp chức năng xác thực với cơ sở dữ liệu [pending]
+### Dependencies: 2.1, 2.2, 2.3, 2.4
+### Description: Đảm bảo tất cả các tính năng xác thực (đăng ký, đăng nhập, token) được tích hợp đúng với model User và các hàm CRUD.
+### Details:
+Rà soát lại các API endpoints, đảm bảo việc đọc/ghi dữ liệu người dùng, token được thực hiện chính xác qua SQLAlchemy models và CRUD functions. Xử lý các trường hợp lỗi (user không tồn tại, sai mật khẩu, token không hợp lệ).
+
+## 6. Cấu hình bảo mật và Middleware liên quan đến xác thực [pending]
+### Dependencies: 2.3, 2.5
+### Description: Cấu hình các thiết lập bảo mật và middleware cần thiết cho quy trình xác thực.
+### Details:
+Đảm bảo `SECRET_KEY` đủ mạnh và được quản lý an toàn. Cấu hình CORS nếu frontend và backend ở khác domain. Xem xét thêm các security headers cơ bản. Đảm bảo các API endpoint yêu cầu xác thực đều sử dụng dependency `get_current_active_user`.
+

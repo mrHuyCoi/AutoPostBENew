@@ -1,0 +1,45 @@
+# Task ID: 10
+# Title: Theo dõi và báo cáo trạng thái đăng bài (Backend API)
+# Status: pending
+# Dependencies: 9
+# Priority: medium
+# Description: Triển khai API backend cho phép người dùng theo dõi trạng thái chi tiết của các bài đăng (đã lên lịch, đang đăng, đã đăng, lỗi) và xem lịch sử/báo cáo cơ bản.
+# Details:
+1.  **Thiết kế mô hình dữ liệu cho theo dõi trạng thái đăng bài**: Chủ yếu dựa vào bảng `posts_management` đã có, với các trường trạng thái chi tiết cho từng nền tảng (`status_facebook`, `post_id_facebook`, `error_facebook`, `status_youtube`, etc.) và trạng thái tổng thể của lịch đăng (`schedule_status`).
+2.  **Triển khai API xem trạng thái đăng bài**: 
+    * `GET /api/v1/posting-status/`: Liệt kê trạng thái của các bài đăng (có thể lọc theo ngày, brand, trạng thái). Thông tin trả về bao gồm `post_management_id`, `final_content` (preview), `scheduled_time`, `schedule_status`, và trạng thái chi tiết trên từng nền tảng (`status_facebook`, `link_facebook`, `status_youtube`, `link_youtube`, ...).
+    * `GET /api/v1/posting-status/{post_id}`: Xem trạng thái chi tiết của một bài đăng cụ thể.
+3.  **Triển khai thông báo cho người dùng (Backend logic, nếu có)**: Nếu có cơ chế thông báo (ví dụ: webhook, email service), backend có thể trigger thông báo khi bài đăng thành công hoặc thất bại. Phần này có thể là tùy chọn nâng cao.
+4.  **Triển khai API xuất báo cáo thống kê đăng bài (cơ bản)**: Endpoint `/api/v1/posting-reports/summary` có thể trả về số lượng bài đã đăng thành công, thất bại trong một khoảng thời gian, theo nền tảng. Ví dụ: `count_success_facebook`, `count_failed_youtube`.
+5.  **Triển khai API xem lịch sử đăng bài**: Cơ bản là API liệt kê ở trên với khả năng lọc theo khoảng thời gian rộng hơn.
+
+# Test Strategy:
+1.  Kiểm tra API xem danh sách và chi tiết trạng thái đăng bài trả về dữ liệu chính xác và đầy đủ.
+2.  Kiểm tra các bộ lọc (theo ngày, trạng thái) hoạt động đúng.
+3.  Kiểm tra API báo cáo thống kê trả về số liệu đúng.
+
+# Subtasks:
+## 1. Hoàn thiện mô hình dữ liệu `PostsManagement` cho việc theo dõi trạng thái [pending]
+### Dependencies: None
+### Description: Đảm bảo bảng `PostsManagement` có đủ các trường để lưu trữ trạng thái đăng chi tiết cho từng nền tảng và trạng thái chung của lịch.
+### Details:
+Các trường cần có: `schedule_status` (ENUM/VARCHAR), `status_facebook`, `link_facebook`, `error_facebook`, `status_instagram`, `link_instagram`, `error_instagram`, `status_threads`, `link_threads`, `error_threads`, `status_youtube`, `link_youtube`, `error_youtube`. Tạo migration nếu có thay đổi.
+
+## 2. Triển khai API Backend xem danh sách và chi tiết trạng thái đăng bài [pending]
+### Dependencies: 10.1
+### Description: Xây dựng các API endpoints cho phép người dùng truy vấn trạng thái các bài đăng.
+### Details:
+GET `/api/v1/posts-management/` (đã có ở Task 5, mở rộng để trả về thêm các trường trạng thái). GET `/api/v1/posts-management/{post_id}` (mở rộng tương tự). Thêm các query parameters để lọc theo `schedule_status`, `brand_name`, `date_range`.
+
+## 3. Triển khai API Backend cho báo cáo thống kê cơ bản [pending]
+### Dependencies: 10.1
+### Description: Xây dựng API endpoint trả về các số liệu thống kê về việc đăng bài.
+### Details:
+Endpoint `GET /api/v1/posts-management/reports/summary`. Query vào bảng `posts_management` để tổng hợp số lượng bài theo trạng thái (ví dụ: thành công, thất bại) cho từng nền tảng trong một khoảng thời gian (ví dụ: tháng này, tuần này).
+
+## 4. Kiểm thử các API theo dõi và báo cáo [pending]
+### Dependencies: 10.2, 10.3
+### Description: Đảm bảo các API trả về dữ liệu chính xác, các bộ lọc hoạt động đúng.
+### Details:
+Tạo dữ liệu giả lập với các trạng thái khác nhau để kiểm thử. Xác minh logic query DB cho thống kê là chính xác.
+

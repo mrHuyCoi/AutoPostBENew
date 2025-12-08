@@ -1,0 +1,843 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Thiết lập cấu trúc dự án và cơ sở dữ liệu",
+      "status": "pending",
+      "description": "Công việc này bao gồm việc khởi tạo và định hình nền tảng cho toàn bộ dự án FastAPI, đồng thời thiết lập và cấu hình cơ sở dữ liệu PostgreSQL để lưu trữ dữ liệu ứng dụng. Đây là bước nền tảng quan trọng cho tất cả các tính năng sau này.",
+      "details": "1.  **Thiết lập cấu trúc thư mục cho dự án FastAPI**: Tạo một cây thư mục logic và dễ quản lý cho mã nguồn, bao gồm các module chính, routers, models, schemas, services, và các thư mục phụ trợ khác (ví dụ: `app/`, `app/api/v1/`, `app/core/`, `app/db/`, `app/models/`, `app/schemas/`, `app/services/`, `app/utils/`, `tests/`, `scripts/`, `alembic/`).\n2.  **Cấu hình môi trường phát triển và các tệp cấu hình**: Tạo và quản lý các biến môi trường (ví dụ: thông tin kết nối cơ sở dữ liệu, secret keys, API keys bên ngoài) cho các môi trường khác nhau (development, testing, production) sử dụng tệp `.env`. Thiết lập tệp cấu hình trung tâm (ví dụ: `app/core/config.py`) để load các biến này một cách an toàn.\n3.  **Thiết lập kết nối đến PostgreSQL**: Cài đặt driver PostgreSQL cho Python (ví dụ: `asyncpg` cho FastAPI). Viết mã trong `app/db/session.py` để thiết lập và quản lý pool kết nối đến PostgreSQL sử dụng SQLAlchemy (Core hoặc ORM). Đảm bảo kết nối an toàn, có khả năng retry cơ bản và được quản lý vòng đời đúng cách trong request.\n4.  **Thiết kế và tạo các bảng dữ liệu ban đầu (sẽ được mở rộng ở các task sau)**:\n    * **Người dùng (users)**: `id` (UUID, PK), `email` (VARCHAR, UNIQUE, NOT NULL), `hashed_password` (VARCHAR, NOT NULL), `full_name` (VARCHAR), `is_active` (BOOLEAN, default TRUE), `is_superuser` (BOOLEAN, default FALSE), `created_at` (TIMESTAMPZ, default NOW()), `updated_at` (TIMESTAMPZ, default NOW()).\n    * **Tài khoản mạng xã hội (social_accounts)**: Sẽ được chi tiết hóa ở Task 3.\n    * **Bảng quản lý bài đăng (posts_management)**: Sẽ được chi tiết hóa ở Task 5.\n    * **Lịch đăng bài (schedules)**: Sẽ được chi tiết hóa ở Task 6, liên kết với `posts_management`.\n    * **Media (media_assets)**: `id` (UUID, PK), `user_id` (FK đến users), `file_name` (VARCHAR), `file_type` (VARCHAR, ví dụ: 'image/jpeg', 'video/mp4'), `storage_path` (VARCHAR, đường dẫn trên cloud storage), `uploaded_at` (TIMESTAMPZ, default NOW()). (Sẽ được tích hợp sâu hơn ở Task 4)\n5.  **Triển khai các hàm truy vấn cơ sở dữ liệu cơ bản (CRUD helpers)**: Tạo các hàm generic hoặc specific trong `app/crud/` để thực hiện các thao tác cơ bản (Create, Read, Update, Delete) với các model SQLAlchemy. Ví dụ: `app/crud/crud_user.py`.\n6.  **Viết script migration cho cơ sở dữ liệu**: Sử dụng Alembic để quản lý schema migrations. Tạo migration ban đầu cho các bảng đã thiết kế ở bước 4.",
+      "priority": "high",
+      "testStrategy": "1.  Kiểm tra kết nối thành công đến cơ sở dữ liệu PostgreSQL từ ứng dụng FastAPI.\n2.  Kiểm tra các hàm CRUD cơ bản cho bảng `users` hoạt động chính xác (tạo, đọc, cập nhật, xóa người dùng).\n3.  Xác minh Alembic migration chạy đúng và tạo ra schema cơ sở dữ liệu như mong đợi.",
+      "dependencies": [],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+      "affected_files": [],
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Tạo cấu trúc thư mục dự án FastAPI",
+          "description": "Thiết lập cấu trúc thư mục ban đầu, có tổ chức cho dự án.",
+          "dependencies": [],
+          "details": "Tạo các thư mục chính như `app` (chứa mã nguồn ứng dụng), `app/api/v1` (cho các API endpoints phiên bản 1), `app/core` (cấu hình, middleware), `app/db` (thiết lập DB, session), `app/models` (SQLAlchemy models), `app/schemas` (Pydantic schemas), `app/services` (logic nghiệp vụ), `app/crud` (hàm truy vấn DB), `tests` (unit, integration tests), `alembic` (cho migrations).",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": [
+            "app/",
+            "app/configs/",
+            "app/constants/",
+            "app/controllers/",
+            "app/database/",
+            "app/dto/",
+            "app/entities/",
+            "app/exceptions/",
+            "app/middlewares/",
+            "app/models/",
+            "app/repositories/",
+            "app/services/",
+            "app/utils/",
+            "tests/",
+            "scripts/",
+            "tasks/",
+            "alembic/"
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Khởi tạo cấu hình môi trường",
+          "description": "Thiết lập các tệp cấu hình và biến môi trường.",
+          "dependencies": [
+            1
+          ],
+          "details": "Tạo tệp `.env.example` với các biến cần thiết (DB_HOST, DB_USER, DB_PASS, DB_NAME, SECRET_KEY, OPENAI_API_KEY). Tạo lớp `Settings` trong `app/core/config.py` sử dụng Pydantic để load các biến này từ môi trường. Đảm bảo `.env` được thêm vào `.gitignore`.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": [
+            ".env",
+            "app/configs/settings.py"
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Cài đặt và cấu hình cơ sở dữ liệu PostgreSQL",
+          "description": "Cài đặt PostgreSQL (nếu phát triển local) và cấu hình kết nối từ FastAPI.",
+          "dependencies": [
+            1
+          ],
+          "details": "Đảm bảo PostgreSQL server đang chạy. Cài đặt `asyncpg` và `SQLAlchemy`. Viết mã trong `app/db/session.py` để tạo `engine` và `SessionLocal` cho SQLAlchemy. Cung cấp hàm dependency `get_db` để sử dụng trong API routes.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": [
+            "app/database/database.py"
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Thiết kế lược đồ cơ sở dữ liệu ban đầu",
+          "description": "Thiết kế các bảng ban đầu dựa trên yêu cầu.",
+          "dependencies": [
+            3
+          ],
+          "details": "Định nghĩa SQLAlchemy models cho `User` và `MediaAsset` trong thư mục `app/models/`. Bao gồm các trường cơ bản, kiểu dữ liệu, ràng buộc, và quan hệ (nếu có ở giai đoạn này).",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": [
+            "app/models/user.py",
+            "app/models/media_asset.py",
+            "app/models/init.py",
+            "app/models/platform_post.py",
+            "app/models/post.py",
+            "app/models/post_media.py",
+            "app/models/social_account.py",
+            "app/models/youtube_metadata.py"
+          ]
+        },
+        {
+          "id": 5,
+          "title": "Viết script migration cơ sở dữ liệu ban đầu với Alembic",
+          "description": "Khởi tạo Alembic và tạo migration đầu tiên cho các bảng đã thiết kế.",
+          "dependencies": [
+            4
+          ],
+          "details": "Chạy `alembic init alembic`. Cấu hình `env.py` để Alembic nhận diện được các models SQLAlchemy. Tạo revision đầu tiên với `alembic revision -m \"create_initial_tables\"` và định nghĩa việc tạo bảng `users`, `media_assets` trong script migration.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": [
+            "social_accounts",
+            "posts",
+            "post_media",
+            "platform_posts",
+            "youtube_metadata",
+            "Và cập nhật bảng media_assets"
+          ]
+        },
+        {
+          "id": 6,
+          "title": "Chạy migration cơ sở dữ liệu ban đầu",
+          "description": "Thực thi script migration để tạo các bảng trong cơ sở dữ liệu.",
+          "dependencies": [
+            5
+          ],
+          "details": "Chạy lệnh `alembic upgrade head` để áp dụng migration vào cơ sở dữ liệu. Kiểm tra trong DB xem các bảng đã được tạo đúng cấu trúc chưa.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": [
+            "các bảng đã được tạo đúng cấu trúc"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Xây dựng hệ thống xác thực và quản lý người dùng",
+      "status": "pending",
+      "description": "Triển khai API cho phép người dùng đăng ký, đăng nhập, và quản lý thông tin tài khoản cá nhân. Sử dụng JWT để xác thực. //tạm thời bỏ qua task này",
+      "details": "1.  **Triển khai API endpoint đăng ký người dùng**: Endpoint `/api/v1/users/register` nhận `email`, `password`, `full_name`. Validate dữ liệu, hash mật khẩu, lưu người dùng mới vào DB.\n2.  **Triển khai API endpoint đăng nhập và tạo token JWT**: Endpoint `/api/v1/auth/login` nhận `username` (email) và `password`. Xác thực thông tin, nếu thành công, tạo và trả về `access_token` (JWT) và `refresh_token`.\n3.  **Triển khai API endpoint quản lý thông tin người dùng**: Endpoint `/api/v1/users/me` (GET) để lấy thông tin người dùng hiện tại (đã xác thực). Endpoint `/api/v1/users/me` (PUT) để cập nhật thông tin người dùng (ví dụ: `full_name`).\n4.  **Triển khai middleware (dependency) xác thực JWT**: Tạo một dependency để kiểm tra `access_token` trong header `Authorization`. Dependency này sẽ giải mã token, xác thực và trả về thông tin người dùng nếu token hợp lệ.\n5.  **Triển khai chức năng khôi phục mật khẩu (Password Recovery)**: Endpoint `/api/v1/auth/forgot-password` nhận email, tạo token reset, gửi email (giả lập hoặc tích hợp dịch vụ email). Endpoint `/api/v1/auth/reset-password` nhận token reset và mật khẩu mới.\n6.  **Thiết lập logic quản lý phiên đăng nhập và refresh token**: Endpoint `/api/v1/auth/refresh` nhận `refresh_token`, xác thực và cấp `access_token` mới.",
+      "priority": "high",
+      "testStrategy": "1.  Kiểm tra quá trình đăng ký người dùng mới, đăng nhập với thông tin chính xác và không chính xác.\n2.  Kiểm tra việc tạo và xác thực `access_token` và `refresh_token`. Bảo vệ endpoint yêu cầu xác thực.\n3.  Kiểm tra các API quản lý thông tin người dùng (lấy thông tin, cập nhật thông tin).\n4.  Kiểm tra quy trình khôi phục mật khẩu (gửi yêu cầu, reset mật khẩu với token).",
+      "dependencies": [
+        1
+      ],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây. (Task này đang tạm thời bỏ qua)",
+      "affected_files": [],
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Triển khai API đăng ký người dùng",
+          "description": "Xây dựng API endpoint cho phép người dùng mới tạo tài khoản.",
+          "dependencies": [],
+          "details": "Tạo Pydantic schema cho request (UserCreate) và response (UserRead). Viết API route trong `app/api/v1/endpoints/users.py`. Sử dụng hàm CRUD đã tạo để lưu người dùng mới sau khi hash mật khẩu bằng `passlib`.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây. (Task này đang tạm thời bỏ qua)",
+          "affected_files": ["app/dto/user_dto.py", "app/api/v1/endpoints/users.py", "app/services/user_service.py"]
+        },
+        {
+          "id": 2,
+          "title": "Triển khai API đăng nhập người dùng",
+          "description": "Xây dựng API endpoint cho phép người dùng đăng nhập và nhận JWT.",
+          "dependencies": [
+            "2.1"
+          ],
+          "details": "Tạo Pydantic schema cho request (LoginRequest). Viết API route trong `app/api/v1/endpoints/auth.py`. Logic bao gồm xác thực email và mật khẩu (đã hash), sau đó tạo JWT access token và refresh token (sử dụng `python-jose`).",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây. (Task này đang tạm thời bỏ qua)",
+          "affected_files": ["app/middlewares/auth_middleware.py", "app/core/security.py"]
+        },
+        {
+          "id": 3,
+          "title": "Triển khai xử lý và xác thực JWT",
+          "description": "Phát triển các hàm tiện ích để tạo, giải mã và xác thực JWT, cùng với dependency để bảo vệ routes.",
+          "dependencies": [
+            "2.2"
+          ],
+          "details": "Viết các hàm trong `app/core/security.py` để tạo access token, refresh token, và verify token. Tạo dependency `get_current_active_user` sử dụng OAuth2PasswordBearer để trích xuất và xác thực token từ header, trả về model User.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây. (Task này đang tạm thời bỏ qua)",
+          "affected_files": ["app/middlewares/auth_middleware.py", "app/core/security.py"]
+        },
+        {
+          "id": 4,
+          "title": "Triển khai API khôi phục mật khẩu",
+          "description": "Xây dựng chức năng cho phép người dùng khôi phục mật khẩu đã quên.",
+          "dependencies": [
+            "2.1"
+          ],
+          "details": "Tạo API endpoint `/forgot-password` để nhận email, tạo token reset đặc biệt lưu vào DB với thời gian hết hạn. Giả lập gửi email. Tạo endpoint `/reset-password` nhận token và mật khẩu mới, xác thực token, cập nhật mật khẩu cho user.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây. (Task này đang tạm thời bỏ qua)",
+          "affected_files": []
+        },
+        {
+          "id": 5,
+          "title": "Tích hợp chức năng xác thực với cơ sở dữ liệu",
+          "description": "Đảm bảo tất cả các tính năng xác thực (đăng ký, đăng nhập, token) được tích hợp đúng với model User và các hàm CRUD.",
+          "dependencies": [
+            "2.1",
+            "2.2",
+            "2.3",
+            "2.4"
+          ],
+          "details": "Rà soát lại các API endpoints, đảm bảo việc đọc/ghi dữ liệu người dùng, token được thực hiện chính xác qua SQLAlchemy models và CRUD functions. Xử lý các trường hợp lỗi (user không tồn tại, sai mật khẩu, token không hợp lệ).",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây. (Task này đang tạm thời bỏ qua)",
+          "affected_files": []
+        },
+        {
+          "id": 6,
+          "title": "Cấu hình bảo mật và Middleware liên quan đến xác thực",
+          "description": "Cấu hình các thiết lập bảo mật và middleware cần thiết cho quy trình xác thực.",
+          "dependencies": [
+            "2.3",
+            "2.5"
+          ],
+          "details": "Đảm bảo `SECRET_KEY` đủ mạnh và được quản lý an toàn. Cấu hình CORS nếu frontend và backend ở khác domain. Xem xét thêm các security headers cơ bản. Đảm bảo các API endpoint yêu cầu xác thực đều sử dụng dependency `get_current_active_user`.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây. (Task này đang tạm thời bỏ qua)",
+          "affected_files": []
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Kết nối tài khoản mạng xã hội và quản lý token (Người dùng tự cung cấp)",
+      "status": "pending",
+      "description": "Cho phép người dùng nhập trực tiếp Access Token (lấy từ trang developer của Facebook, Google, v.v.) để kết nối tài khoản mạng xã hội (Facebook Page, Instagram, Threads, YouTube). Hệ thống backend sẽ lưu trữ và quản lý các token này.",
+      "details": "1.  **Thiết kế API endpoint để người dùng gửi `access_token` cho các nền tảng**: Tạo các endpoints riêng biệt hoặc một endpoint chung với tham số `platform` (facebook, instagram, youtube) để nhận `access_token` và các thông tin liên quan (ví dụ: `page_id` cho Facebook Page, `channel_id` cho YouTube nếu người dùng cung cấp).\n2.  **Xác thực sơ bộ token và lấy thông tin tài khoản**: Sau khi nhận token, backend sẽ gọi một API cơ bản của nền tảng tương ứng (ví dụ: `/me` cho Facebook, `/channels` cho YouTube) để xác thực token và lấy thông tin cơ bản như `platform_user_id`, tên tài khoản/page/kênh.\n3.  **Lưu trữ `access_token` (và `refresh_token` nếu có cho YouTube) vào bảng `social_accounts`**: Bảng này cần các cột: `id` (PK), `user_id` (FK đến `users`), `platform` (ENUM), `platform_account_id` (ID của tài khoản trên MXH, ví dụ page ID, channel ID), `account_name` (tên trang/kênh), `access_token` (đã mã hóa), `refresh_token` (đã mã hóa, nếu có), `token_expires_at` (TIMESTAMPZ, nếu có), `scopes` (TEXT ARRAY, các quyền của token), `created_at`, `updated_at`.\n4.  **Thực hiện mã hóa token trước khi lưu vào cơ sở dữ liệu**: Sử dụng thư viện `cryptography` (Fernet) để mã hóa và giải mã token. Key mã hóa phải được lưu an toàn trong biến môi trường.\n5.  **Triển khai API để người dùng quản lý các tài khoản mạng xã hội đã kết nối**: Endpoints để liệt kê, xem chi tiết, cập nhật (ví dụ: cung cấp token mới), và xóa các tài khoản MXH đã liên kết.\n6.  **Xử lý token hết hạn/không hợp lệ**: Khi sử dụng token để gọi API ở các task sau, nếu gặp lỗi token hết hạn/không hợp lệ, cập nhật trạng thái của `social_account` trong DB và thông báo cho người dùng (qua một cơ chế nào đó ở frontend hoặc API response) để họ cung cấp token mới.",
+      "priority": "high",
+      "testStrategy": "1.  Kiểm tra API nhận và lưu token thành công cho Facebook, Instagram, YouTube. Dữ liệu token phải được mã hóa trong DB.\n2.  Kiểm tra API lấy thông tin tài khoản từ token hoạt động chính xác.\n3.  Kiểm tra các API CRUD cho `social_accounts` (liệt kê, xem, cập nhật, xóa).\n4.  Kiểm tra việc xử lý khi cung cấp token không hợp lệ (backend trả lỗi).\n5.  Kiểm tra việc giải mã token khi cần sử dụng (ví dụ, cho một API call thử nghiệm).",
+      "dependencies": [
+        2
+      ],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+      "affected_files": [
+        "app/utils/crypto.py",
+        "app/dto/social_account_dto.py",
+        "app/services/social_account_service.py",
+        "app/controllers/social_account_controller.py"
+      ],
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Thiết kế API và logic Backend để nhận và lưu trữ Facebook Access Token",
+          "description": "Xây dựng chức năng backend cho phép người dùng cung cấp Facebook Page Access Token.",
+          "dependencies": [],
+          "details": "Tạo API endpoint (ví dụ: POST `/api/v1/social-accounts/facebook`). Request body chứa `access_token`, `page_id`. Backend xác thực token bằng cách gọi API Facebook (ví dụ: `/{page_id}?fields=name&access_token={token}`). Nếu thành công, mã hóa token và lưu thông tin vào bảng `social_accounts`.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": [
+            "app/utils/crypto.py",
+            "app/dto/social_account_dto.py",
+            "app/services/social_account_service.py",
+            "app/controllers/social_account_controller.py"
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Thiết kế API và logic Backend để nhận và lưu trữ Instagram Access Token",
+          "description": "Xây dựng chức năng backend cho phép người dùng cung cấp Instagram Access Token (thường là token Facebook có quyền truy cập Instagram).",
+          "dependencies": [],
+          "details": "Tạo API endpoint (ví dụ: POST `/api/v1/social-accounts/instagram`). Request body chứa `access_token`, `instagram_business_account_id`. Backend xác thực token bằng cách gọi API Instagram Graph (ví dụ: `/{instagram_business_account_id}?fields=username&access_token={token}`). Nếu thành công, mã hóa token và lưu vào `social_accounts`.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": [  "app/dto/social_account_dto.py",
+          "app/services/social_account_service.py",
+          "app/controllers/social_account_controller.py"]
+        },
+        {
+          "id": 3,
+          "title": "Thiết kế API và logic Backend để nhận và lưu trữ YouTube Access Token",
+          "description": "Xây dựng chức năng backend cho phép người dùng cung cấp YouTube Access Token (và Refresh Token nếu có).",
+          "dependencies": [],
+          "details": "Tạo API endpoint (ví dụ: POST `/api/v1/social-accounts/youtube`). Request body chứa `access_token`, `refresh_token` (tùy chọn). Backend xác thực token bằng cách gọi API YouTube Data (ví dụ: `/channels?part=snippet&mine=true`). Nếu thành công, mã hóa token và lưu vào `social_accounts`.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 4,
+          "title": "Hoàn thiện model `SocialAccount` và triển khai mã hóa/giải mã token",
+          "description": "Định nghĩa SQLAlchemy model cho `social_accounts` với đầy đủ các trường. Triển khai các hàm tiện ích để mã hóa và giải mã token.",
+          "dependencies": [
+            "3.1",
+            "3.2",
+            "3.3"
+          ],
+          "details": "Tạo model `SocialAccount` trong `app/models/`. Viết các hàm trong `app/core/security.py` sử dụng `cryptography.fernet` để mã hóa token trước khi lưu và giải mã khi cần sử dụng. Đảm bảo key mã hóa được lấy từ biến môi trường.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": ["app/models/social_account.py", "app/utils/crypto.py"]
+        },
+        {
+          "id": 5,
+          "title": "Triển khai API quản lý (CRUD) cho các tài khoản mạng xã hội đã kết nối",
+          "description": "Xây dựng các API endpoints cho phép người dùng xem, liệt kê, cập nhật (token mới) và xóa các tài khoản MXH đã liên kết.",
+          "dependencies": [
+            "3.4"
+          ],
+          "details": "Tạo các API routes trong `app/api/v1/endpoints/social_accounts.py`: GET `/` (list), GET `/{account_id}` (retrieve), PUT `/{account_id}` (update token), DELETE `/{account_id}` (delete). Các thao tác này sử dụng CRUD functions tương ứng.",
+          "status": "done",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": ["app/controllers/social_account_controller.py"]
+        },
+        {
+          "id": 6,
+          "title": "Triển khai logic kiểm tra tính hợp lệ ban đầu của token và xử lý lỗi",
+          "description": "Trong quá trình thêm mới/cập nhật token, thực hiện gọi API cơ bản để xác thực. Xử lý các lỗi có thể xảy ra.",
+          "dependencies": [
+            "3.1",
+            "3.2",
+            "3.3"
+          ],
+          "details": "Trong logic của các subtask 3.1, 3.2, 3.3, nếu API call đến nền tảng MXH thất bại (token sai, không đủ quyền, hết hạn), trả về lỗi HTTP thích hợp cho client (ví dụ: 400 Bad Request với message lỗi rõ ràng).",
+          "status": "done-chờ youtube",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Quản lý tải lên và lưu trữ media (Backend)",
+      "status": "pending",
+      "description": "Triển khai API backend cho phép tải lên hình ảnh và video, lưu trữ chúng trên cloud storage (ví dụ: AWS S3, Google Cloud Storage) và quản lý thông tin media trong cơ sở dữ liệu.",
+      "details": "1.  **Tích hợp với Cloud Storage**: Lựa chọn một nhà cung cấp cloud storage. Cài đặt SDK tương ứng (ví dụ: `boto3` cho AWS S3). Cấu hình credentials an toàn qua biến môi trường.\n2.  **Triển khai API tải lên hình ảnh**: Endpoint `/api/v1/media/upload/image` nhận file hình ảnh. Validate file (kích thước, loại). Tải file lên cloud storage. Lưu thông tin metadata (tên file, URL trên cloud, user_id, loại file) vào bảng `media_assets`.\n3.  **Triển khai API tải lên video**: Endpoint `/api/v1/media/upload/video` nhận file video. Validate file. Tải file lên cloud storage. Lưu metadata vào bảng `media_assets`.\n4.  **Triển khai xử lý hình ảnh cơ bản (nếu cần ở backend)**: Có thể xem xét tích hợp thư viện như Pillow để resize, tối ưu hóa hình ảnh trước khi tải lên, hoặc thực hiện việc này ở phía client/một service riêng.\n5.  **Triển khai xử lý video cơ bản (nếu cần ở backend)**: Chuyển đổi định dạng, nén video có thể phức tạp và nên được xử lý bằng dịch vụ chuyên biệt (ví dụ: AWS MediaConvert) hoặc một worker riêng. API này có thể chỉ nhận file và lưu trữ.\n6.  **Triển khai API quản lý media đã tải lên**: Endpoints để liệt kê media của người dùng, lấy chi tiết, xóa media (xóa file trên cloud storage và record trong DB).\n7.  **Thiết lập logic lưu trữ và truy xuất thông tin media**: Đảm bảo thông tin media trong bảng `media_assets` được liên kết đúng với người dùng và có thể được truy xuất dễ dàng.",
+      "priority": "high",
+      "testStrategy": "1.  Kiểm tra API tải lên hình ảnh và video thành công, file được lưu trên cloud storage và thông tin được ghi vào DB.\n2.  Kiểm tra API truy xuất danh sách media và chi tiết media.\n3.  Kiểm tra API xóa media (file trên cloud và record DB đều bị xóa).\n4.  Kiểm tra xử lý lỗi (file quá lớn, sai định dạng).",
+      "dependencies": [
+        1
+      ],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+      "affected_files": [],
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Nghiên cứu và chọn lựa Cloud Storage Provider",
+          "description": "Đánh giá các lựa chọn như AWS S3, Google Cloud Storage, Azure Blob Storage về chi phí, tính năng, dễ tích hợp.",
+          "dependencies": [],
+          "details": "So sánh SDK, tài liệu, giới hạn miễn phí (nếu có), và các tính năng bảo mật. Quyết định một nhà cung cấp.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 2,
+          "title": "Thiết kế tích hợp Cloud Storage",
+          "description": "Lên kế hoạch chi tiết cách backend sẽ tương tác với cloud storage API.",
+          "dependencies": [
+            "4.1"
+          ],
+          "details": "Xác định các hàm cần thiết (upload, download, delete, generate presigned URL nếu cần). Cấu hình bucket, permissions. Lưu trữ access keys an toàn.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 3,
+          "title": "Triển khai API Backend tích hợp Cloud Storage",
+          "description": "Viết code Python sử dụng SDK của cloud provider để thực hiện các thao tác tải lên, xóa file.",
+          "dependencies": [
+            "4.2"
+          ],
+          "details": "Tạo một service module (ví dụ `app/services/cloud_storage.py`) chứa logic tương tác với cloud. Cài đặt SDK (ví dụ `boto3` cho S3).",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 4,
+          "title": "Phát triển API Backend cho chức năng tải lên media (hình ảnh, video)",
+          "description": "Tạo các API endpoints cho phép người dùng tải file lên, sau đó backend sẽ lưu vào cloud storage.",
+          "dependencies": [
+            "4.3"
+          ],
+          "details": "Sử dụng `UploadFile` của FastAPI. Tạo endpoints `/api/v1/media/upload/image` và `/api/v1/media/upload/video`. Validate file type, size. Gọi service ở 4.3 để upload. Lưu thông tin vào bảng `media_assets` (tham chiếu đến `id` của media này sẽ được dùng trong Task 5).",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 5,
+          "title": "Triển khai API Backend quản lý media (liệt kê, xóa)",
+          "description": "Tạo các API endpoints cho phép người dùng xem danh sách media của họ và xóa media.",
+          "dependencies": [
+            "4.3",
+            "4.4"
+          ],
+          "details": "Endpoint GET `/api/v1/media/` để liệt kê media của user hiện tại. Endpoint DELETE `/api/v1/media/{media_id}` để xóa media (xóa file trên cloud và record trong DB).",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 6,
+          "title": "Kiểm thử và tối ưu hóa hệ thống tải lên và quản lý media",
+          "description": "Thực hiện kiểm thử kỹ lưỡng và tối ưu hóa nếu cần.",
+          "dependencies": [
+            "4.5"
+          ],
+          "details": "Test với các loại file, kích thước khác nhau. Kiểm tra xử lý lỗi. Đảm bảo an toàn và hiệu suất.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Soạn thảo, quản lý nội dung bài đăng và tích hợp gemini (Backend)// lưu ý phải cho chọn các mô hình ai như gemini opentai mô hình ai, và phải có chỗ để cho người dùng chỉnh prompt, mỗi nền tảng phải có nội dung đăng bài khác nhau người dùng có thể tùy chỉnh ví dụ như facebook thì facebook reel đăng nội dung kiểu khác, facebook trên page kiểu khác và youtube hay intagram cũng vậy",
+      "status": "pending",
+      "description": "Triển khai API backend cho phép người dùng quản lý thông tin chi tiết của từng kế hoạch đăng bài trong một bảng cơ sở dữ liệu. Tích hợp API của OpenAI để tự động tạo nội dung bài đăng từ prompt do người dùng nhập vào.",
+      "priority": "medium",
+      "dependencies": [
+        1,
+        4
+      ],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+      "affected_files": [],
+      "subtasks": [
+        {
+          "id": 2,
+          "title": "Triển khai API Backend (CRUD) để quản lý các bản ghi `Posts`",
+          "description": "Xây dựng các API endpoints cho phép tạo, đọc, cập nhật, xóa các kế hoạch đăng bài.",
+          "dependencies": [
+            "5.1"
+          ],
+          "details": "Tạo Pydantic schemas cho request (Create, Update) và response (Read). Viết API routes trong `app/api/v1/endpoints/posts_management.py`. Sử dụng CRUD functions tương ứng. Đảm bảo chỉ user sở hữu mới thao tác được với bản ghi của mình.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 3,
+          "title": "Tích hợp OpenAI API: Xây dựng API endpoint để tạo nội dung",
+          "description": "Tạo API endpoint nhận prompt từ người dùng, gọi đến API của gemini và trả về nội dung được tạo.",
+          "dependencies": [],
+          "details": "Tạo service `app/services/gemini_service.py` chứa logic gọi API gemini. Endpoint `POST /api/v1/content-generation/openai` sẽ nhận `prompt` (và các thông tin tùy chọn khác), gọi service này và trả về text. Cấu hình timeout, error handling.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 4,
+          "title": "Triển khai logic cập nhật `final_content` từ `generated_content`",
+          "description": "Sau khi người dùng nhận được nội dung từ OpenAI, họ có thể quyết định sử dụng nó. API cập nhật kế hoạch đăng bài cần hỗ trợ việc này.",
+          "dependencies": [
+            "5.2",
+            "5.3"
+          ],
+          "details": "Trong API `PUT /api/v1/posts-management/{post_id}`, cho phép client gửi `generated_content` (hoặc một flag `use_generated_content: true`) để backend cập nhật `final_content` bằng `generated_content` đã lưu trước đó (hoặc client gửi thẳng `final_content` đã chỉnh sửa).",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 5,
+          "title": "Viết unit test và integration test",
+          "description": "Đảm bảo các API quản lý bài đăng và tích hợp OpenAI hoạt động đúng và ổn định.",
+          "dependencies": [
+            "5.2",
+            "5.3",
+            "5.4"
+          ],
+          "details": "Sử dụng `pytest`. Viết test cho các trường hợp thành công, lỗi của API CRUD `Posts`. Mock API call đến OpenAI để test endpoint tạo nội dung mà không tốn chi phí thật.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Lên lịch đăng bài (Backend)",
+      "status": "pending",
+      "description": "Triển khai API backend và logic để cho phép người dùng lên lịch đăng các bài đã soạn thảo trong `PostsManagement`.",
+      "details": "1.  **Thiết kế mô hình dữ liệu cho lịch đăng bài (`schedules`)**: Bảng này sẽ liên kết với `posts_management` và chứa thông tin về thời gian đăng cụ thể cho từng nền tảng nếu cần, hoặc một thời gian chung.\n    * `id` (PK), `post_management_id` (FK đến `posts_management`, UNIQUE nếu một kế hoạch chỉ có 1 lịch tổng), `scheduled_at` (TIMESTAMPZ NOT NULL, thời gian dự kiến đăng), `status` (ENUM: 'pending', 'processing', 'posted', 'failed', 'user_cancelled'), `target_platform` (VARCHAR, ví dụ: 'facebook', 'youtube', 'all' - nếu lịch này áp dụng cho tất cả target_social_account_ids trong post_management), `social_account_id` (FK đến `social_accounts`), `created_at`, `updated_at`.\n    * **Lưu ý**: Có thể thiết kế một bản ghi `posts_management` có nhiều bản ghi `schedules` nếu muốn lên lịch riêng cho từng nền tảng của cùng một nội dung. Hoặc đơn giản hơn, một `posts_management` có một `scheduled_at` và các trường trạng thái đăng cho từng nền tảng.\n    * **Cách tiếp cận đơn giản hơn (ưu tiên ban đầu):** Thêm trực tiếp các trường vào bảng `posts_management` (đã làm một phần ở Task 5) và quản lý trạng thái đăng/lịch đăng ngay trên đó: `scheduled_at` (TIMESTAMPZ), `schedule_status` (ENUM: 'scheduled', 'posting', 'completed', 'failed').\n2.  **Triển khai API tạo lịch đăng**: Endpoint `/api/v1/schedules/` (POST) nhận `post_management_id`, `scheduled_at`, và các thông tin cần thiết khác để tạo một lịch đăng mới cho một bài viết đã soạn.\n3.  **Triển khai API quản lý lịch đăng**: Liệt kê lịch (`GET /schedules/`), chỉnh sửa thời gian lịch đăng (`PUT /schedules/{schedule_id}`), xóa lịch đăng (`DELETE /schedules/{schedule_id}`).\n4.  **Triển khai lên lịch đăng định kỳ (Tùy chọn nâng cao, có thể bỏ qua ban đầu)**: Nếu cần, xem xét tích hợp thư viện xử lý cron expression hoặc logic lặp lại.\n5.  **Triển khai logic xử lý múi giờ**: Đảm bảo tất cả thời gian `scheduled_at` được lưu trữ và xử lý nhất quán (khuyến nghị dùng UTC trong DB) và API có thể nhận/trả về thời gian theo múi giờ của người dùng nếu cần (thông qua header hoặc config người dùng).",
+      "priority": "medium",
+      "testStrategy": "1.  Kiểm tra API tạo, xem, sửa, xóa lịch đăng bài thành công.\n2.  Kiểm tra việc lên lịch với thời gian trong quá khứ, tương lai.\n3.  Kiểm tra xử lý múi giờ (nếu có triển khai chuyển đổi).",
+      "dependencies": [
+        5
+      ],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+      "affected_files": [],
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Thiết kế/Cập nhật mô hình dữ liệu cho `Schedules` (hoặc tích hợp vào `PostsManagement`)",
+          "description": "Quyết định cách lưu trữ thông tin lịch đăng. Nếu là bảng riêng, định nghĩa model `Schedule`. Nếu tích hợp, đảm bảo `PostsManagement` có đủ trường.",
+          "dependencies": [],
+          "details": "Nếu bảng riêng: `id`, `post_management_id`, `social_account_id`, `scheduled_at`, `status`. Tạo migration. Nếu tích hợp vào `PostsManagement`: Thêm các trường: `scheduled_at_override` (TIMESTAMPZ, cho phép ghi đè lịch chung), `specific_schedule_status_facebook` (ENUM), `specific_schedule_status_youtube` (ENUM) etc. Ưu tiên tích hợp vào `PostsManagement` cho đơn giản ban đầu: thêm `scheduled_time` (TIMESTAMP WITH TIME ZONE), `schedule_status` (VARCHAR: 'pending_schedule', 'scheduled', 'posting', 'posted_all', 'failed_partial', 'user_cancelled').",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 2,
+          "title": "Triển khai API Backend để tạo và quản lý lịch đăng",
+          "description": "Xây dựng các API endpoints để người dùng đặt lịch, xem, sửa, hủy lịch cho các bài đăng trong `PostsManagement`.",
+          "dependencies": [
+            "6.1"
+          ],
+          "details": "Ví dụ: `POST /api/v1/posts-management/{post_id}/schedule` (body: `scheduled_time`), `PUT /api/v1/posts-management/{post_id}/schedule` (cập nhật `scheduled_time`), `DELETE /api/v1/posts-management/{post_id}/schedule` (xóa lịch, đặt `scheduled_time` = NULL, `schedule_status` = 'draft').",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 3,
+          "title": "Xử lý logic múi giờ trong API",
+          "description": "Đảm bảo API nhận đầu vào thời gian có thông tin múi giờ, và lưu trữ trong DB dưới dạng UTC.",
+          "dependencies": [
+            "6.2"
+          ],
+          "details": "Sử dụng Pydantic để validate datetime string có timezone. Chuyển đổi sang UTC trước khi lưu. Khi trả về, có thể giữ UTC hoặc chuyển đổi lại nếu có thông tin timezone của user.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 4,
+          "title": "Kiểm thử chức năng lên lịch",
+          "description": "Test các trường hợp tạo lịch, sửa lịch, hủy lịch, và các ràng buộc về thời gian.",
+          "dependencies": [
+            "6.2",
+            "6.3"
+          ],
+          "details": "Kiểm tra không cho đặt lịch trong quá khứ (trừ khi có lý do). Đảm bảo trạng thái `schedule_status` được cập nhật đúng.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Tích hợp API Facebook/Instagram/Threads cho đăng bài (Backend)",
+      "status": "pending",
+      "description": "Triển khai logic backend sử dụng token đã lưu (Task 3) và nội dung bài đăng (Task 5) để thực hiện đăng bài lên Facebook Page, Instagram (qua API Facebook), và Threads (nếu có API chính thức).",
+      "details": "1.  **Triển khai API wrapper cho Facebook Graph API (cho Facebook Page, Instagram, Threads)**: Tạo một service module (`app/services/facebook_service.py`) để chứa các hàm gọi đến Facebook Graph API.\n    * Sử dụng `httpx` hoặc `requests` để thực hiện API calls.\n    * Các hàm cần có: đăng text, đăng ảnh, đăng video lên Facebook Page; đăng ảnh, video (reels) lên Instagram; đăng text/ảnh lên Threads (nếu API hỗ trợ).\n2.  **Lấy `access_token` của tài khoản MXH đích**: Từ `post_management_id` và `target_social_account_ids`, truy xuất `access_token` (đã giải mã) tương ứng từ bảng `social_accounts`.\n3.  **Chuẩn bị dữ liệu bài đăng**: Dựa trên `final_content`, `media_id` (ảnh/video), `facebook_post_format` từ `posts_management`, chuẩn bị payload cho API call.\n4.  **Thực hiện đăng bài**: Gọi hàm tương ứng trong API wrapper.\n5.  **Xử lý lỗi và retry logic (cơ bản)**: Bắt các lỗi từ API (token hết hạn, lỗi quyền, nội dung không hợp lệ). Có thể implement retry đơn giản cho lỗi mạng.\n6.  **Cập nhật trạng thái sau khi đăng**: Sau khi đăng thành công hoặc thất bại, cập nhật lại trạng thái trong bảng `posts_management` (ví dụ: `is_posted_facebook = true/false`, `facebook_post_link`, `error_message_facebook`).",
+      "priority": "high",
+      "testStrategy": "1.  Kiểm tra đăng thành công bài text, ảnh, video lên Facebook Page.\n2.  Kiểm tra đăng thành công bài ảnh, video (reels) lên Instagram.\n3.  Kiểm tra đăng thành công bài text/ảnh lên Threads (nếu có).\n4.  Kiểm tra xử lý lỗi (token sai, không đủ quyền, media không hợp lệ) và cập nhật trạng thái bài đăng chính xác.",
+      "dependencies": [
+        3,
+        5
+      ],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+      "affected_files": [],
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Nghiên cứu API và yêu cầu đăng bài cho Facebook Page",
+          "description": "Tìm hiểu chi tiết các endpoint của Facebook Graph API để đăng text, ảnh, video (bao gồm cả Reels nếu video < 60s và là Page).",
+          "dependencies": [],
+          "details": "Tham khảo tài liệu: `/{page_id}/feed` (cho text, link), `/{page_id}/photos` (cho ảnh), `/{page_id}/videos` (cho video). Lưu ý các yêu cầu về định dạng, kích thước file.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 2,
+          "title": "Nghiên cứu API và yêu cầu đăng bài cho Instagram (qua Facebook Graph API)",
+          "description": "Tìm hiểu chi tiết các endpoint của Instagram Graph API để đăng ảnh, video (bao gồm cả Reels).",
+          "dependencies": [],
+          "details": "Tham khảo tài liệu: `/{ig_user_id}/media` (để tải lên ảnh/video), `/{ig_user_id}/media_publish` (để đăng media đã tải lên). Lưu ý quy trình 2 bước và các loại media được hỗ trợ (IMAGE, VIDEO, CAROUSEL, REELS).",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 3,
+          "title": "Nghiên cứu API và yêu cầu đăng bài cho Threads (nếu có)",
+          "description": "Kiểm tra tình trạng API chính thức của Threads. Nếu chưa có, task này có thể bị hoãn hoặc tìm giải pháp thay thế (nếu có và được phép).",
+          "dependencies": [],
+          "details": "Theo dõi thông báo từ Meta về Threads API. Hiện tại (Q2 2025), API có thể vẫn còn hạn chế hoặc chưa công khai rộng rãi. Nếu có, tìm hiểu cách đăng text, media.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 4,
+          "title": "Phát triển các hàm Backend để đăng bài lên Facebook Page",
+          "description": "Viết code trong `facebook_service.py` để thực hiện đăng các loại nội dung (text, ảnh, video) lên Facebook Page sử dụng Graph API.",
+          "dependencies": [
+            "7.1"
+          ],
+          "details": "Các hàm nhận đầu vào là `page_access_token`, `page_id`, `message` (text), `image_url/video_url` (đã được upload lên cloud storage ở Task 4, hoặc URL công khai). Xử lý response từ API.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 5,
+          "title": "Phát triển các hàm Backend để đăng bài lên Instagram",
+          "description": "Viết code trong `facebook_service.py` để thực hiện đăng ảnh, video (Reels) lên Instagram.",
+          "dependencies": [
+            "7.2"
+          ],
+          "details": "Các hàm nhận `ig_user_access_token`, `ig_user_id`, `media_url`, `caption`, `media_type`. Thực hiện quy trình upload container và publish. Xử lý response.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 6,
+          "title": "Phát triển các hàm Backend để đăng bài lên Threads (nếu API khả dụng)",
+          "description": "Viết code tương tự nếu Threads API được mở.",
+          "dependencies": [
+            "7.3"
+          ],
+          "details": "Nếu có API, triển khai các hàm đăng bài tương tự cho Threads.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 7,
+          "title": "Triển khai logic xử lý lỗi và cập nhật trạng thái bài đăng Facebook/Instagram/Threads",
+          "description": "Trong các hàm đăng bài, bắt lỗi từ API, log lỗi, và cập nhật trạng thái (thành công/thất bại, link bài đăng nếu có) vào bảng `posts_management`.",
+          "dependencies": [
+            "7.4",
+            "7.5",
+            "7.6"
+          ],
+          "details": "Ví dụ, thêm các trường `status_facebook` (ENUM: 'pending', 'success', 'failed'), `post_id_facebook`, `error_facebook` vào `PostsManagement`. Cập nhật các trường này sau mỗi lần thử đăng.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Tích hợp API YouTube cho đăng bài (Backend)",
+      "status": "pending",
+      "description": "Triển khai logic backend sử dụng token đã lưu (Task 3) và nội dung bài đăng (Task 5) để thực hiện đăng video lên YouTube.",
+      "details": "1.  **Triển khai API wrapper cho YouTube Data API v3**: Tạo một service module (`app/services/youtube_service.py`) để chứa các hàm gọi đến YouTube Data API.\n    * Sử dụng thư viện `google-api-python-client`.\n    * Hàm cần có: tải lên video, thiết lập metadata (tiêu đề, mô tả, tags, categoryId), thiết lập quyền riêng tư (public, private, unlisted), tải lên thumbnail.\n2.  **Lấy `access_token` (và `refresh_token`) của kênh YouTube đích**: Từ `post_management_id` và `target_social_account_ids`, truy xuất token (đã giải mã) tương ứng từ `social_accounts`. Xử lý làm mới token nếu `access_token` hết hạn và có `refresh_token`.\n3.  **Chuẩn bị dữ liệu video**: Dựa trên `video_media_id`, `youtube_title`, `youtube_description`, `youtube_tags`, `thumbnail_media_id` từ `posts_management`, chuẩn bị payload và file video cho API call.\n4.  **Thực hiện đăng video**: Gọi hàm tải lên video trong API wrapper. Đây là quy trình resumable upload.\n5.  **Xử lý lỗi và retry logic**: Bắt lỗi từ API. YouTube API có giới hạn quota, cần xử lý.\n6.  **Cập nhật trạng thái sau khi đăng**: Cập nhật `is_posted_youtube = true/false`, `youtube_video_link`, `error_message_youtube` trong `posts_management`.",
+      "priority": "medium",
+      "testStrategy": "1.  Kiểm tra đăng video thành công lên YouTube với đầy đủ metadata (tiêu đề, mô tả, tags, thumbnail).\n2.  Kiểm tra xử lý refresh token cho YouTube (nếu access token ban đầu hết hạn).\n3.  Kiểm tra xử lý lỗi (quota, video không hợp lệ, token sai) và cập nhật trạng thái bài đăng chính xác.",
+      "dependencies": [
+        3,
+        5
+      ],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+      "affected_files": [],
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Nghiên cứu YouTube Data API v3 cho việc tải lên video",
+          "description": "Tìm hiểu các endpoint `Videos.insert` và quy trình resumable upload, cách thiết lập metadata, privacy status, thumbnail.",
+          "dependencies": [],
+          "details": "Tham khảo tài liệu của Google. Chú ý đến các scope OAuth cần thiết (ví dụ: `https://www.googleapis.com/auth/youtube.upload`, `https://www.googleapis.com/auth/youtube`).",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 2,
+          "title": "Phát triển các hàm Backend để đăng video lên YouTube",
+          "description": "Viết code trong `youtube_service.py` sử dụng `google-api-python-client` để tải video, metadata và thumbnail.",
+          "dependencies": [
+            "8.1"
+          ],
+          "details": "Hàm nhận `access_token`, `video_file_path` (hoặc stream), `title`, `description`, `tags`, `privacy_status`, `thumbnail_file_path`. Thực hiện resumable upload. Xử lý response.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 3,
+          "title": "Triển khai logic làm mới YouTube Access Token",
+          "description": "Nếu YouTube `access_token` hết hạn, sử dụng `refresh_token` (nếu có) để lấy `access_token` mới từ Google OAuth 2.0 token endpoint.",
+          "dependencies": [
+            "8.2"
+          ],
+          "details": "Trước khi gọi API YouTube, kiểm tra thời gian hết hạn của token (nếu có thông tin). Nếu sắp hết hạn hoặc API call trả về lỗi token hết hạn, dùng `refresh_token` để gọi `https://oauth2.googleapis.com/token` lấy token mới và cập nhật lại trong DB.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 4,
+          "title": "Triển khai logic xử lý lỗi và cập nhật trạng thái bài đăng YouTube",
+          "description": "Bắt lỗi từ API YouTube, log lỗi, và cập nhật trạng thái vào bảng `posts_management`.",
+          "dependencies": [
+            "8.2",
+            "8.3"
+          ],
+          "details": "Ví dụ, thêm các trường `status_youtube` (ENUM), `video_id_youtube`, `error_youtube` vào `PostsManagement`. Cập nhật các trường này sau mỗi lần thử đăng.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Triển khai hệ thống đăng bài tự động theo lịch (Backend Worker)",
+      "status": "pending",
+      "description": "Xây dựng một worker (ví dụ: sử dụng Celery, FastAPI BackgroundTasks, hoặc cron job + script) để tự động kiểm tra các bài đăng đã được lên lịch trong `PostsManagement` (Task 6) và thực hiện đăng bài (Task 7, 8) khi đến giờ.",
+      "details": "1.  **Thiết kế worker**: Quyết định công nghệ cho worker (Celery là lựa chọn mạnh mẽ cho các tác vụ nền, FastAPI BackgroundTasks đơn giản hơn cho các tác vụ không quá phức tạp, cron job gọi một script Python cũng là một giải pháp).\n2.  **Logic của worker**: Worker sẽ định kỳ (ví dụ: mỗi phút) query bảng `posts_management` để tìm các bài có `scheduled_time` đã đến và `schedule_status` là 'scheduled'.\n3.  **Thực hiện đăng bài**: Với mỗi bài tìm được, worker sẽ:\n    * Cập nhật `schedule_status` thành 'posting'.\n    * Lấy thông tin bài đăng, thông tin tài khoản MXH đích, và token.\n    * Gọi các services đã tạo ở Task 7 và Task 8 để đăng bài lên từng nền tảng được chỉ định trong `target_social_account_ids`.\n    * Cập nhật trạng thái chi tiết cho từng nền tảng (thành công/thất bại, link bài đăng, lỗi) trong `posts_management`.\n4.  **Triển khai cơ chế queue (nếu dùng Celery)**: Các tác vụ đăng bài nên được đưa vào queue để xử lý bất đồng bộ, tránh block worker chính.\n5.  **Thiết lập cron job hoặc task scheduler**: Nếu không dùng Celery, cần thiết lập cron job (Linux) hoặc Task Scheduler (Windows) để chạy script của worker định kỳ.\n6.  **Triển khai logic retry cho các bài đăng thất bại (nâng cao)**: Có thể retry một số lần nếu lỗi là lỗi mạng hoặc lỗi tạm thời từ API.\n7.  **Triển khai ghi log chi tiết**: Ghi lại toàn bộ quá trình hoạt động của worker, các lỗi xảy ra, kết quả đăng bài.",
+      "priority": "high",
+      "testStrategy": "1.  Kiểm tra worker lấy đúng các bài đã lên lịch khi đến giờ.\n2.  Kiểm tra worker thực hiện đăng bài lên các nền tảng thành công.\n3.  Kiểm tra worker cập nhật trạng thái bài đăng (tổng thể và chi tiết từng nền tảng) chính xác sau khi đăng.\n4.  Kiểm tra xử lý lỗi của worker (ví dụ: một nền tảng đăng lỗi, các nền tảng khác vẫn tiếp tục).\n5.  Kiểm tra log của worker đầy đủ và rõ ràng.",
+      "dependencies": [
+        6,
+        7,
+        8
+      ],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+      "affected_files": [],
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Lựa chọn và thiết kế kiến trúc Worker",
+          "description": "Chọn công nghệ (Celery, FastAPI BackgroundTasks, Cron + Script) và thiết kế luồng hoạt động của worker.",
+          "dependencies": [],
+          "details": "Nếu dùng Celery: thiết lập Celery app, broker (Redis/RabbitMQ), worker. Nếu BackgroundTasks: tạo hàm task. Nếu Cron: viết script Python có thể chạy độc lập.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 2,
+          "title": "Triển khai logic Worker quét lịch đăng bài",
+          "description": "Viết code cho worker để truy vấn DB lấy các bài cần đăng.",
+          "dependencies": [
+            "9.1"
+          ],
+          "details": "Worker query bảng `posts_management` tìm các bản ghi có `scheduled_time` <= NOW() AND `schedule_status` == 'scheduled'. Sắp xếp theo `scheduled_time`.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 3,
+          "title": "Tích hợp Worker với các service đăng bài (Facebook, YouTube)",
+          "description": "Worker gọi các service đã tạo ở Task 7, 8 để thực hiện đăng bài.",
+          "dependencies": [
+            "9.2"
+          ],
+          "details": "Với mỗi bài, worker sẽ lặp qua `target_social_account_ids`. Nếu là Facebook/Instagram/Threads, gọi `facebook_service`. Nếu là YouTube, gọi `youtube_service`. Truyền đúng token và nội dung.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 4,
+          "title": "Triển khai cập nhật trạng thái bài đăng từ Worker",
+          "description": "Worker cập nhật trạng thái (`schedule_status`, `status_facebook`, `link_facebook`, etc.) trong `posts_management` sau mỗi lần thử đăng.",
+          "dependencies": [
+            "9.3"
+          ],
+          "details": "Cập nhật trạng thái tổng thể của `schedule_status` (ví dụ: 'posted_all', 'failed_partial') và trạng thái chi tiết cho từng nền tảng.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 5,
+          "title": "Thiết lập và cấu hình Worker (Celery beat, cron job)",
+          "description": "Cấu hình để worker chạy định kỳ.",
+          "dependencies": [
+            "9.1"
+          ],
+          "details": "Nếu dùng Celery, cấu hình Celery Beat để gửi task quét lịch định kỳ. Nếu cron, viết cron expression. Nếu FastAPI BackgroundTasks, cần một endpoint để kích hoạt (ví dụ: gọi từ một cron job bên ngoài).",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 6,
+          "title": "Triển khai ghi log và xử lý lỗi cho Worker",
+          "description": "Thiết lập logging chi tiết cho worker và cơ chế xử lý lỗi cơ bản (ví dụ: đánh dấu bài là 'failed' nếu lỗi không thể retry).",
+          "dependencies": [
+            "9.4"
+          ],
+          "details": "Sử dụng thư viện `logging` của Python. Log các bước thực hiện, lỗi API, thông tin bài đăng. Xử lý exceptions một cách an toàn để worker không bị crash.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Theo dõi và báo cáo trạng thái đăng bài (Backend API)",
+      "status": "pending",
+      "description": "Triển khai API backend cho phép người dùng theo dõi trạng thái chi tiết của các bài đăng (đã lên lịch, đang đăng, đã đăng, lỗi) và xem lịch sử/báo cáo cơ bản.",
+      "details": "1.  **Thiết kế mô hình dữ liệu cho theo dõi trạng thái đăng bài**: Chủ yếu dựa vào bảng `posts_management` đã có, với các trường trạng thái chi tiết cho từng nền tảng (`status_facebook`, `post_id_facebook`, `error_facebook`, `status_youtube`, etc.) và trạng thái tổng thể của lịch đăng (`schedule_status`).\n2.  **Triển khai API xem trạng thái đăng bài**: \n    * `GET /api/v1/posting-status/`: Liệt kê trạng thái của các bài đăng (có thể lọc theo ngày, brand, trạng thái). Thông tin trả về bao gồm `post_management_id`, `final_content` (preview), `scheduled_time`, `schedule_status`, và trạng thái chi tiết trên từng nền tảng (`status_facebook`, `link_facebook`, `status_youtube`, `link_youtube`, ...).\n    * `GET /api/v1/posting-status/{post_id}`: Xem trạng thái chi tiết của một bài đăng cụ thể.\n3.  **Triển khai thông báo cho người dùng (Backend logic, nếu có)**: Nếu có cơ chế thông báo (ví dụ: webhook, email service), backend có thể trigger thông báo khi bài đăng thành công hoặc thất bại. Phần này có thể là tùy chọn nâng cao.\n4.  **Triển khai API xuất báo cáo thống kê đăng bài (cơ bản)**: Endpoint `/api/v1/posting-reports/summary` có thể trả về số lượng bài đã đăng thành công, thất bại trong một khoảng thời gian, theo nền tảng. Ví dụ: `count_success_facebook`, `count_failed_youtube`.\n5.  **Triển khai API xem lịch sử đăng bài**: Cơ bản là API liệt kê ở trên với khả năng lọc theo khoảng thời gian rộng hơn.",
+      "priority": "medium",
+      "testStrategy": "1.  Kiểm tra API xem danh sách và chi tiết trạng thái đăng bài trả về dữ liệu chính xác và đầy đủ.\n2.  Kiểm tra các bộ lọc (theo ngày, trạng thái) hoạt động đúng.\n3.  Kiểm tra API báo cáo thống kê trả về số liệu đúng.",
+      "dependencies": [
+        9
+      ],
+      "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+      "affected_files": [],
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Hoàn thiện mô hình dữ liệu `PostsManagement` cho việc theo dõi trạng thái",
+          "description": "Đảm bảo bảng `PostsManagement` có đủ các trường để lưu trữ trạng thái đăng chi tiết cho từng nền tảng và trạng thái chung của lịch.",
+          "dependencies": [],
+          "details": "Các trường cần có: `schedule_status` (ENUM/VARCHAR), `status_facebook`, `link_facebook`, `error_facebook`, `status_instagram`, `link_instagram`, `error_instagram`, `status_threads`, `link_threads`, `error_threads`, `status_youtube`, `link_youtube`, `error_youtube`. Tạo migration nếu có thay đổi.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 2,
+          "title": "Triển khai API Backend xem danh sách và chi tiết trạng thái đăng bài",
+          "description": "Xây dựng các API endpoints cho phép người dùng truy vấn trạng thái các bài đăng.",
+          "dependencies": [
+            "10.1"
+          ],
+          "details": "GET `/api/v1/posts-management/` (đã có ở Task 5, mở rộng để trả về thêm các trường trạng thái). GET `/api/v1/posts-management/{post_id}` (mở rộng tương tự). Thêm các query parameters để lọc theo `schedule_status`, `brand_name`, `date_range`.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 3,
+          "title": "Triển khai API Backend cho báo cáo thống kê cơ bản",
+          "description": "Xây dựng API endpoint trả về các số liệu thống kê về việc đăng bài.",
+          "dependencies": [
+            "10.1"
+          ],
+          "details": "Endpoint `GET /api/v1/posts-management/reports/summary`. Query vào bảng `posts_management` để tổng hợp số lượng bài theo trạng thái (ví dụ: thành công, thất bại) cho từng nền tảng trong một khoảng thời gian (ví dụ: tháng này, tuần này).",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        },
+        {
+          "id": 4,
+          "title": "Kiểm thử các API theo dõi và báo cáo",
+          "description": "Đảm bảo các API trả về dữ liệu chính xác, các bộ lọc hoạt động đúng.",
+          "dependencies": [
+            "10.2",
+            "10.3"
+          ],
+          "details": "Tạo dữ liệu giả lập với các trạng thái khác nhau để kiểm thử. Xác minh logic query DB cho thống kê là chính xác.",
+          "status": "pending",
+          "affected_files_note": "Khi làm xong task này, bắt buộc phải ghi tên các file đã tạo hoặc chỉnh sửa vào đây.",
+          "affected_files": []
+        }
+      ]
+    }
+  ]
+}

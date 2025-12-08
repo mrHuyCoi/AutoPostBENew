@@ -1,0 +1,67 @@
+# Task ID: 3
+# Title: Kết nối tài khoản mạng xã hội và quản lý token (Người dùng tự cung cấp)
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Cho phép người dùng nhập trực tiếp Access Token (lấy từ trang developer của Facebook, Google, v.v.) để kết nối tài khoản mạng xã hội (Facebook Page, Instagram, Threads, YouTube). Hệ thống backend sẽ lưu trữ và quản lý các token này.
+# Details:
+1.  **Thiết kế API endpoint để người dùng gửi `access_token` cho các nền tảng**: Tạo các endpoints riêng biệt hoặc một endpoint chung với tham số `platform` (facebook, instagram, youtube) để nhận `access_token` và các thông tin liên quan (ví dụ: `page_id` cho Facebook Page, `channel_id` cho YouTube nếu người dùng cung cấp).
+2.  **Xác thực sơ bộ token và lấy thông tin tài khoản**: Sau khi nhận token, backend sẽ gọi một API cơ bản của nền tảng tương ứng (ví dụ: `/me` cho Facebook, `/channels` cho YouTube) để xác thực token và lấy thông tin cơ bản như `platform_user_id`, tên tài khoản/page/kênh.
+3.  **Lưu trữ `access_token` (và `refresh_token` nếu có cho YouTube) vào bảng `social_accounts`**: Bảng này cần các cột: `id` (PK), `user_id` (FK đến `users`), `platform` (ENUM), `platform_account_id` (ID của tài khoản trên MXH, ví dụ page ID, channel ID), `account_name` (tên trang/kênh), `access_token` (đã mã hóa), `refresh_token` (đã mã hóa, nếu có), `token_expires_at` (TIMESTAMPZ, nếu có), `scopes` (TEXT ARRAY, các quyền của token), `created_at`, `updated_at`.
+4.  **Thực hiện mã hóa token trước khi lưu vào cơ sở dữ liệu**: Sử dụng thư viện `cryptography` (Fernet) để mã hóa và giải mã token. Key mã hóa phải được lưu an toàn trong biến môi trường.
+5.  **Triển khai API để người dùng quản lý các tài khoản mạng xã hội đã kết nối**: Endpoints để liệt kê, xem chi tiết, cập nhật (ví dụ: cung cấp token mới), và xóa các tài khoản MXH đã liên kết.
+6.  **Xử lý token hết hạn/không hợp lệ**: Khi sử dụng token để gọi API ở các task sau, nếu gặp lỗi token hết hạn/không hợp lệ, cập nhật trạng thái của `social_account` trong DB và thông báo cho người dùng (qua một cơ chế nào đó ở frontend hoặc API response) để họ cung cấp token mới.
+
+# Test Strategy:
+1.  Kiểm tra API nhận và lưu token thành công cho Facebook, Instagram, YouTube. Dữ liệu token phải được mã hóa trong DB.
+2.  Kiểm tra API lấy thông tin tài khoản từ token hoạt động chính xác.
+3.  Kiểm tra các API CRUD cho `social_accounts` (liệt kê, xem, cập nhật, xóa).
+4.  Kiểm tra việc xử lý khi cung cấp token không hợp lệ (backend trả lỗi).
+5.  Kiểm tra việc giải mã token khi cần sử dụng (ví dụ, cho một API call thử nghiệm).
+
+# Subtasks:
+## 1. Thiết kế API và logic Backend để nhận và lưu trữ Facebook Access Token [pending]
+### Dependencies: None
+### Description: Xây dựng chức năng backend cho phép người dùng cung cấp Facebook Page Access Token.
+### Details:
+Tạo API endpoint (ví dụ: POST `/api/v1/social-accounts/facebook`). Request body chứa `access_token`, `page_id`. Backend xác thực token bằng cách gọi API Facebook (ví dụ: `/{page_id}?fields=name&access_token={token}`). Nếu thành công, mã hóa token và lưu thông tin vào bảng `social_accounts`.
+
+## 2. Thiết kế API và logic Backend để nhận và lưu trữ Instagram Access Token [pending]
+### Dependencies: None
+### Description: Xây dựng chức năng backend cho phép người dùng cung cấp Instagram Access Token (thường là token Facebook có quyền truy cập Instagram).
+### Details:
+Tạo API endpoint (ví dụ: POST `/api/v1/social-accounts/instagram`). Request body chứa `access_token`, `instagram_business_account_id`. Backend xác thực token bằng cách gọi API Instagram Graph (ví dụ: `/{instagram_business_account_id}?fields=username&access_token={token}`). Nếu thành công, mã hóa token và lưu vào `social_accounts`.
+
+## 3. Thiết kế API và logic Backend để nhận và lưu trữ YouTube Access Token [pending]
+### Dependencies: None
+### Description: Xây dựng chức năng backend cho phép người dùng cung cấp YouTube Access Token (và Refresh Token nếu có).
+### Details:
+Tạo API endpoint (ví dụ: POST `/api/v1/social-accounts/youtube`). Request body chứa `access_token`, `refresh_token` (tùy chọn). Backend xác thực token bằng cách gọi API YouTube Data (ví dụ: `/channels?part=snippet&mine=true`). Nếu thành công, mã hóa token và lưu vào `social_accounts`.
+
+## 4. Hoàn thiện model `SocialAccount` và triển khai mã hóa/giải mã token [pending]
+### Dependencies: 3.1, 3.2, 3.3
+### Description: Định nghĩa SQLAlchemy model cho `social_accounts` với đầy đủ các trường. Triển khai các hàm tiện ích để mã hóa và giải mã token.
+### Details:
+Tạo model `SocialAccount` trong `app/models/`. Viết các hàm trong `app/core/security.py` sử dụng `cryptography.fernet` để mã hóa token trước khi lưu và giải mã khi cần sử dụng. Đảm bảo key mã hóa được lấy từ biến môi trường.
+
+## 5. Triển khai API quản lý (CRUD) cho các tài khoản mạng xã hội đã kết nối [pending]
+### Dependencies: 3.4
+### Description: Xây dựng các API endpoints cho phép người dùng xem, liệt kê, cập nhật (token mới) và xóa các tài khoản MXH đã liên kết.
+### Details:
+Tạo các API routes trong `app/api/v1/endpoints/social_accounts.py`: GET `/` (list), GET `/{account_id}` (retrieve), PUT `/{account_id}` (update token), DELETE `/{account_id}` (delete). Các thao tác này sử dụng CRUD functions tương ứng.
+
+## 6. Triển khai logic kiểm tra tính hợp lệ ban đầu của token và xử lý lỗi [pending]
+### Dependencies: 3.1, 3.2, 3.3
+### Description: Trong quá trình thêm mới/cập nhật token, thực hiện gọi API cơ bản để xác thực. Xử lý các lỗi có thể xảy ra.
+### Details:
+Trong logic của các subtask 3.1, 3.2, 3.3, nếu API call đến nền tảng MXH thất bại (token sai, không đủ quyền, hết hạn), trả về lỗi HTTP thích hợp cho client (ví dụ: 400 Bad Request với message lỗi rõ ràng).
+
+## 7. Triển khai API để lấy danh sách page từ Facebook API [pending]
+### Dependencies: None
+### Description: Xây dựng endpoint để người dùng có thể cung cấp user_id và user_access_token để lấy danh sách các page mà họ quản lý, bao gồm page_id và page_access_token
+### Details:
+1. Tạo endpoint mới để nhận user_id và user_access_token
+2. Gọi API Facebook: GET https://graph.facebook.com/v23.0/{user_id}/accounts?access_token={user_access_token}
+3. Trả về danh sách các page với thông tin: page_id, page_access_token, category, name
+4. Lưu trữ page_access_token và page_id trong cơ sở dữ liệu
+

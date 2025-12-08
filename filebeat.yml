@@ -1,0 +1,20 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    # Đọc tất cả file log JSON của ứng dụng trong thư mục logs
+    paths:
+      - /app/logs/*.log
+    json.keys_under_root: true
+    json.add_error_key: true
+    json.message_key: message
+
+output.elasticsearch:
+  hosts: ["http://192.168.1.73:9200"]
+  # Nếu Elasticsearch yêu cầu auth, thêm:
+  # username: "elastic"
+  # password: "your-password"
+  index: "dangbaitudong-logs-%{+yyyy.MM.dd}"
+
+setup.template.name: "dangbaitudong-logs"
+setup.template.pattern: "dangbaitudong-logs-*"
+setup.ilm.enabled: false

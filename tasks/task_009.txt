@@ -1,0 +1,63 @@
+# Task ID: 9
+# Title: Triển khai hệ thống đăng bài tự động theo lịch (Backend Worker)
+# Status: pending
+# Dependencies: 6, 7, 8
+# Priority: high
+# Description: Xây dựng một worker (ví dụ: sử dụng Celery, FastAPI BackgroundTasks, hoặc cron job + script) để tự động kiểm tra các bài đăng đã được lên lịch trong `PostsManagement` (Task 6) và thực hiện đăng bài (Task 7, 8) khi đến giờ.
+# Details:
+1.  **Thiết kế worker**: Quyết định công nghệ cho worker (Celery là lựa chọn mạnh mẽ cho các tác vụ nền, FastAPI BackgroundTasks đơn giản hơn cho các tác vụ không quá phức tạp, cron job gọi một script Python cũng là một giải pháp).
+2.  **Logic của worker**: Worker sẽ định kỳ (ví dụ: mỗi phút) query bảng `posts_management` để tìm các bài có `scheduled_time` đã đến và `schedule_status` là 'scheduled'.
+3.  **Thực hiện đăng bài**: Với mỗi bài tìm được, worker sẽ:
+    * Cập nhật `schedule_status` thành 'posting'.
+    * Lấy thông tin bài đăng, thông tin tài khoản MXH đích, và token.
+    * Gọi các services đã tạo ở Task 7 và Task 8 để đăng bài lên từng nền tảng được chỉ định trong `target_social_account_ids`.
+    * Cập nhật trạng thái chi tiết cho từng nền tảng (thành công/thất bại, link bài đăng, lỗi) trong `posts_management`.
+4.  **Triển khai cơ chế queue (nếu dùng Celery)**: Các tác vụ đăng bài nên được đưa vào queue để xử lý bất đồng bộ, tránh block worker chính.
+5.  **Thiết lập cron job hoặc task scheduler**: Nếu không dùng Celery, cần thiết lập cron job (Linux) hoặc Task Scheduler (Windows) để chạy script của worker định kỳ.
+6.  **Triển khai logic retry cho các bài đăng thất bại (nâng cao)**: Có thể retry một số lần nếu lỗi là lỗi mạng hoặc lỗi tạm thời từ API.
+7.  **Triển khai ghi log chi tiết**: Ghi lại toàn bộ quá trình hoạt động của worker, các lỗi xảy ra, kết quả đăng bài.
+
+# Test Strategy:
+1.  Kiểm tra worker lấy đúng các bài đã lên lịch khi đến giờ.
+2.  Kiểm tra worker thực hiện đăng bài lên các nền tảng thành công.
+3.  Kiểm tra worker cập nhật trạng thái bài đăng (tổng thể và chi tiết từng nền tảng) chính xác sau khi đăng.
+4.  Kiểm tra xử lý lỗi của worker (ví dụ: một nền tảng đăng lỗi, các nền tảng khác vẫn tiếp tục).
+5.  Kiểm tra log của worker đầy đủ và rõ ràng.
+
+# Subtasks:
+## 1. Lựa chọn và thiết kế kiến trúc Worker [pending]
+### Dependencies: None
+### Description: Chọn công nghệ (Celery, FastAPI BackgroundTasks, Cron + Script) và thiết kế luồng hoạt động của worker.
+### Details:
+Nếu dùng Celery: thiết lập Celery app, broker (Redis/RabbitMQ), worker. Nếu BackgroundTasks: tạo hàm task. Nếu Cron: viết script Python có thể chạy độc lập.
+
+## 2. Triển khai logic Worker quét lịch đăng bài [pending]
+### Dependencies: 9.1
+### Description: Viết code cho worker để truy vấn DB lấy các bài cần đăng.
+### Details:
+Worker query bảng `posts_management` tìm các bản ghi có `scheduled_time` <= NOW() AND `schedule_status` == 'scheduled'. Sắp xếp theo `scheduled_time`.
+
+## 3. Tích hợp Worker với các service đăng bài (Facebook, YouTube) [pending]
+### Dependencies: 9.2
+### Description: Worker gọi các service đã tạo ở Task 7, 8 để thực hiện đăng bài.
+### Details:
+Với mỗi bài, worker sẽ lặp qua `target_social_account_ids`. Nếu là Facebook/Instagram/Threads, gọi `facebook_service`. Nếu là YouTube, gọi `youtube_service`. Truyền đúng token và nội dung.
+
+## 4. Triển khai cập nhật trạng thái bài đăng từ Worker [pending]
+### Dependencies: 9.3
+### Description: Worker cập nhật trạng thái (`schedule_status`, `status_facebook`, `link_facebook`, etc.) trong `posts_management` sau mỗi lần thử đăng.
+### Details:
+Cập nhật trạng thái tổng thể của `schedule_status` (ví dụ: 'posted_all', 'failed_partial') và trạng thái chi tiết cho từng nền tảng.
+
+## 5. Thiết lập và cấu hình Worker (Celery beat, cron job) [pending]
+### Dependencies: 9.1
+### Description: Cấu hình để worker chạy định kỳ.
+### Details:
+Nếu dùng Celery, cấu hình Celery Beat để gửi task quét lịch định kỳ. Nếu cron, viết cron expression. Nếu FastAPI BackgroundTasks, cần một endpoint để kích hoạt (ví dụ: gọi từ một cron job bên ngoài).
+
+## 6. Triển khai ghi log và xử lý lỗi cho Worker [pending]
+### Dependencies: 9.4
+### Description: Thiết lập logging chi tiết cho worker và cơ chế xử lý lỗi cơ bản (ví dụ: đánh dấu bài là 'failed' nếu lỗi không thể retry).
+### Details:
+Sử dụng thư viện `logging` của Python. Log các bước thực hiện, lỗi API, thông tin bài đăng. Xử lý exceptions một cách an toàn để worker không bị crash.
+

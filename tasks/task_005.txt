@@ -1,0 +1,72 @@
+# Task ID: 5
+# Title: Soạn thảo, quản lý nội dung bài đăng và tích hợp OpenAI (Backend)// lưu ý phải cho chọn mô hình ai, và phải có chỗ để cho người dùng chỉnh prompt
+# Status: pending
+# Dependencies: 1, 4
+# Priority: medium
+# Description: Triển khai API backend cho phép người dùng quản lý thông tin chi tiết của từng kế hoạch đăng bài trong một bảng cơ sở dữ liệu. Tích hợp API của OpenAI để tự động tạo nội dung bài đăng từ prompt do người dùng nhập vào.
+# Details:
+1.  **Thiết kế/Cập nhật mô hình dữ liệu cho bảng `posts_management`**: Bảng này sẽ lưu trữ toàn bộ thông tin cho một kế hoạch đăng bài, bao gồm:
+    * `id` (UUID, PK), `user_id` (FK đến `users`, NOT NULL)
+    * `image_media_id` (FK đến `media_assets`, nullable, nếu đăng ảnh)
+    * `video_media_id` (FK đến `media_assets`, nullable, nếu đăng video)
+    * `thumbnail_media_id` (FK đến `media_assets`, nullable, ảnh nền cho video)
+    * `prompt_for_content` (TEXT, prompt người dùng nhập để AI tạo nội dung)
+    * `generated_content` (TEXT, nội dung do AI tạo, người dùng có thể chỉnh sửa)
+    * `final_content` (TEXT NOT NULL, nội dung cuối cùng sẽ được đăng, có thể là `generated_content` đã chỉnh sửa hoặc nội dung tự nhập)
+    * `brand_name` (VARCHAR, nullable)
+    * `target_social_account_ids` (JSONB hoặc TEXT ARRAY, chứa IDs từ bảng `social_accounts` mà bài này sẽ đăng lên, ví dụ: `[{platform: 'facebook', account_id: 'social_acc_fb_uuid'}, {platform: 'youtube', account_id: 'social_acc_yt_uuid'}]`)
+    * `facebook_post_format` (VARCHAR, ví dụ: 'reel', 'video', 'image', 'text', nullable)
+    * `youtube_title` (TEXT, nullable)
+    * `youtube_description` (TEXT, nullable)
+    * `youtube_tags` (TEXT ARRAY, nullable)
+    * `created_at` (TIMESTAMPZ, default NOW()), `updated_at` (TIMESTAMPZ, default NOW())
+    * (Các trường về lịch đăng và trạng thái đăng sẽ được quản lý trong Task 6 và Task 10, nhưng có thể có một trường `status` cơ bản ở đây như 'draft', 'ready_to_schedule')
+2.  **Triển khai API CRUD cho bảng `posts_management`**: 
+    * `POST /api/v1/posts-management/`: Tạo một kế hoạch đăng bài mới.
+    * `GET /api/v1/posts-management/`: Liệt kê các kế hoạch (có phân trang, lọc theo user, brand).
+    * `GET /api/v1/posts-management/{post_id}`: Lấy chi tiết một kế hoạch.
+    * `PUT /api/v1/posts-management/{post_id}`: Cập nhật thông tin một kế hoạch.
+    * `DELETE /api/v1/posts-management/{post_id}`: Xóa một kế hoạch.
+3.  **Triển khai API endpoint để gọi OpenAI tạo nội dung**: 
+    * `POST /api/v1/content-generation/openai`: Nhận `prompt_for_content` (và có thể là `brand_name`, `target_platform` để tùy chỉnh prompt ngầm). 
+    * Backend sẽ xây dựng một prompt hoàn chỉnh hơn, gọi API OpenAI (ví dụ: GPT-3.5-turbo, GPT-4) và trả về `generated_content`.
+    * Người dùng sau đó có thể quyết định sử dụng nội dung này (cập nhật vào `final_content` của một kế hoạch đăng bài cụ thể thông qua API PUT ở trên).
+4.  **Lưu trữ OpenAI API key an toàn**: Đã thực hiện trong Task 1 (biến môi trường).
+
+# Test Strategy:
+1.  Kiểm tra các API CRUD cho bảng `posts_management` (tạo, đọc, cập nhật, xóa kế hoạch đăng bài).
+2.  Kiểm tra API gọi OpenAI: gửi prompt, nhận nội dung được tạo, xử lý lỗi từ OpenAI (API key sai, hết quota).
+3.  Kiểm tra việc lưu trữ và cập nhật các trường dữ liệu trong `posts_management` chính xác.
+4.  Xác minh cấu trúc bảng trong DB khớp với thiết kế và các mối quan hệ FK với `users`, `media_assets` hoạt động đúng.
+
+# Subtasks:
+## 1. Thiết kế và triển khai mô hình dữ liệu `PostsManagement` [pending]
+### Dependencies: None
+### Description: Định nghĩa SQLAlchemy model cho bảng `posts_management` với các trường chi tiết đã liệt kê, bao gồm cả các FK đến `users` và `media_assets`.
+### Details:
+Tạo model `PostsManagement` trong `app/models/`. Bao gồm các kiểu dữ liệu phù hợp (UUID, TEXT, VARCHAR, JSONB/ARRAY, TIMESTAMPZ). Tạo migration mới với Alembic để tạo bảng này.
+
+## 2. Triển khai API Backend (CRUD) để quản lý các bản ghi `PostsManagement` [pending]
+### Dependencies: 5.1
+### Description: Xây dựng các API endpoints cho phép tạo, đọc, cập nhật, xóa các kế hoạch đăng bài.
+### Details:
+Tạo Pydantic schemas cho request (Create, Update) và response (Read). Viết API routes trong `app/api/v1/endpoints/posts_management.py`. Sử dụng CRUD functions tương ứng. Đảm bảo chỉ user sở hữu mới thao tác được với bản ghi của mình.
+
+## 3. Tích hợp OpenAI API: Xây dựng API endpoint để tạo nội dung [pending]
+### Dependencies: None
+### Description: Tạo API endpoint nhận prompt từ người dùng, gọi đến API của OpenAI và trả về nội dung được tạo.
+### Details:
+Tạo service `app/services/openai_service.py` chứa logic gọi API OpenAI (sử dụng thư viện `openai`). Endpoint `POST /api/v1/content-generation/openai` sẽ nhận `prompt` (và các thông tin tùy chọn khác), gọi service này và trả về text. Cấu hình timeout, error handling.
+
+## 4. Triển khai logic cập nhật `final_content` từ `generated_content` [pending]
+### Dependencies: 5.2, 5.3
+### Description: Sau khi người dùng nhận được nội dung từ OpenAI, họ có thể quyết định sử dụng nó. API cập nhật kế hoạch đăng bài cần hỗ trợ việc này.
+### Details:
+Trong API `PUT /api/v1/posts-management/{post_id}`, cho phép client gửi `generated_content` (hoặc một flag `use_generated_content: true`) để backend cập nhật `final_content` bằng `generated_content` đã lưu trước đó (hoặc client gửi thẳng `final_content` đã chỉnh sửa).
+
+## 5. Viết unit test và integration test [pending]
+### Dependencies: 5.2, 5.3, 5.4
+### Description: Đảm bảo các API quản lý bài đăng và tích hợp OpenAI hoạt động đúng và ổn định.
+### Details:
+Sử dụng `pytest`. Viết test cho các trường hợp thành công, lỗi của API CRUD `PostsManagement`. Mock API call đến OpenAI để test endpoint tạo nội dung mà không tốn chi phí thật.
+

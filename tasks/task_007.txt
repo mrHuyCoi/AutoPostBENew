@@ -1,0 +1,65 @@
+# Task ID: 7
+# Title: Tích hợp API Facebook/Instagram/Threads cho đăng bài (Backend)
+# Status: pending
+# Dependencies: 3, 5
+# Priority: high
+# Description: Triển khai logic backend sử dụng token đã lưu (Task 3) và nội dung bài đăng (Task 5) để thực hiện đăng bài lên Facebook Page, Instagram (qua API Facebook), và Threads (nếu có API chính thức).
+# Details:
+1.  **Triển khai API wrapper cho Facebook Graph API (cho Facebook Page, Instagram, Threads)**: Tạo một service module (`app/services/facebook_service.py`) để chứa các hàm gọi đến Facebook Graph API.
+    * Sử dụng `httpx` hoặc `requests` để thực hiện API calls.
+    * Các hàm cần có: đăng text, đăng ảnh, đăng video lên Facebook Page; đăng ảnh, video (reels) lên Instagram; đăng text/ảnh lên Threads (nếu API hỗ trợ).
+2.  **Lấy `access_token` của tài khoản MXH đích**: Từ `post_management_id` và `target_social_account_ids`, truy xuất `access_token` (đã giải mã) tương ứng từ bảng `social_accounts`.
+3.  **Chuẩn bị dữ liệu bài đăng**: Dựa trên `final_content`, `media_id` (ảnh/video), `facebook_post_format` từ `posts_management`, chuẩn bị payload cho API call.
+4.  **Thực hiện đăng bài**: Gọi hàm tương ứng trong API wrapper.
+5.  **Xử lý lỗi và retry logic (cơ bản)**: Bắt các lỗi từ API (token hết hạn, lỗi quyền, nội dung không hợp lệ). Có thể implement retry đơn giản cho lỗi mạng.
+6.  **Cập nhật trạng thái sau khi đăng**: Sau khi đăng thành công hoặc thất bại, cập nhật lại trạng thái trong bảng `posts_management` (ví dụ: `is_posted_facebook = true/false`, `facebook_post_link`, `error_message_facebook`).
+
+# Test Strategy:
+1.  Kiểm tra đăng thành công bài text, ảnh, video lên Facebook Page.
+2.  Kiểm tra đăng thành công bài ảnh, video (reels) lên Instagram.
+3.  Kiểm tra đăng thành công bài text/ảnh lên Threads (nếu có).
+4.  Kiểm tra xử lý lỗi (token sai, không đủ quyền, media không hợp lệ) và cập nhật trạng thái bài đăng chính xác.
+
+# Subtasks:
+## 1. Nghiên cứu API và yêu cầu đăng bài cho Facebook Page [pending]
+### Dependencies: None
+### Description: Tìm hiểu chi tiết các endpoint của Facebook Graph API để đăng text, ảnh, video (bao gồm cả Reels nếu video < 60s và là Page).
+### Details:
+Tham khảo tài liệu: `/{page_id}/feed` (cho text, link), `/{page_id}/photos` (cho ảnh), `/{page_id}/videos` (cho video). Lưu ý các yêu cầu về định dạng, kích thước file.
+
+## 2. Nghiên cứu API và yêu cầu đăng bài cho Instagram (qua Facebook Graph API) [pending]
+### Dependencies: None
+### Description: Tìm hiểu chi tiết các endpoint của Instagram Graph API để đăng ảnh, video (bao gồm cả Reels).
+### Details:
+Tham khảo tài liệu: `/{ig_user_id}/media` (để tải lên ảnh/video), `/{ig_user_id}/media_publish` (để đăng media đã tải lên). Lưu ý quy trình 2 bước và các loại media được hỗ trợ (IMAGE, VIDEO, CAROUSEL, REELS).
+
+## 3. Nghiên cứu API và yêu cầu đăng bài cho Threads (nếu có) [pending]
+### Dependencies: None
+### Description: Kiểm tra tình trạng API chính thức của Threads. Nếu chưa có, task này có thể bị hoãn hoặc tìm giải pháp thay thế (nếu có và được phép).
+### Details:
+Theo dõi thông báo từ Meta về Threads API. Hiện tại (Q2 2025), API có thể vẫn còn hạn chế hoặc chưa công khai rộng rãi. Nếu có, tìm hiểu cách đăng text, media.
+
+## 4. Phát triển các hàm Backend để đăng bài lên Facebook Page [pending]
+### Dependencies: 7.1
+### Description: Viết code trong `facebook_service.py` để thực hiện đăng các loại nội dung (text, ảnh, video) lên Facebook Page sử dụng Graph API.
+### Details:
+Các hàm nhận đầu vào là `page_access_token`, `page_id`, `message` (text), `image_url/video_url` (đã được upload lên cloud storage ở Task 4, hoặc URL công khai). Xử lý response từ API.
+
+## 5. Phát triển các hàm Backend để đăng bài lên Instagram [pending]
+### Dependencies: 7.2
+### Description: Viết code trong `facebook_service.py` để thực hiện đăng ảnh, video (Reels) lên Instagram.
+### Details:
+Các hàm nhận `ig_user_access_token`, `ig_user_id`, `media_url`, `caption`, `media_type`. Thực hiện quy trình upload container và publish. Xử lý response.
+
+## 6. Phát triển các hàm Backend để đăng bài lên Threads (nếu API khả dụng) [pending]
+### Dependencies: 7.3
+### Description: Viết code tương tự nếu Threads API được mở.
+### Details:
+Nếu có API, triển khai các hàm đăng bài tương tự cho Threads.
+
+## 7. Triển khai logic xử lý lỗi và cập nhật trạng thái bài đăng Facebook/Instagram/Threads [pending]
+### Dependencies: 7.4, 7.5, 7.6
+### Description: Trong các hàm đăng bài, bắt lỗi từ API, log lỗi, và cập nhật trạng thái (thành công/thất bại, link bài đăng nếu có) vào bảng `posts_management`.
+### Details:
+Ví dụ, thêm các trường `status_facebook` (ENUM: 'pending', 'success', 'failed'), `post_id_facebook`, `error_facebook` vào `PostsManagement`. Cập nhật các trường này sau mỗi lần thử đăng.
+

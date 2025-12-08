@@ -1,0 +1,46 @@
+# Task ID: 6
+# Title: Lên lịch đăng bài (Backend)
+# Status: pending
+# Dependencies: 5
+# Priority: medium
+# Description: Triển khai API backend và logic để cho phép người dùng lên lịch đăng các bài đã soạn thảo trong `PostsManagement`.
+# Details:
+1.  **Thiết kế mô hình dữ liệu cho lịch đăng bài (`schedules`)**: Bảng này sẽ liên kết với `posts_management` và chứa thông tin về thời gian đăng cụ thể cho từng nền tảng nếu cần, hoặc một thời gian chung.
+    * `id` (PK), `post_management_id` (FK đến `posts_management`, UNIQUE nếu một kế hoạch chỉ có 1 lịch tổng), `scheduled_at` (TIMESTAMPZ NOT NULL, thời gian dự kiến đăng), `status` (ENUM: 'pending', 'processing', 'posted', 'failed', 'user_cancelled'), `target_platform` (VARCHAR, ví dụ: 'facebook', 'youtube', 'all' - nếu lịch này áp dụng cho tất cả target_social_account_ids trong post_management), `social_account_id` (FK đến `social_accounts`), `created_at`, `updated_at`.
+    * **Lưu ý**: Có thể thiết kế một bản ghi `posts_management` có nhiều bản ghi `schedules` nếu muốn lên lịch riêng cho từng nền tảng của cùng một nội dung. Hoặc đơn giản hơn, một `posts_management` có một `scheduled_at` và các trường trạng thái đăng cho từng nền tảng.
+    * **Cách tiếp cận đơn giản hơn (ưu tiên ban đầu):** Thêm trực tiếp các trường vào bảng `posts_management` (đã làm một phần ở Task 5) và quản lý trạng thái đăng/lịch đăng ngay trên đó: `scheduled_at` (TIMESTAMPZ), `schedule_status` (ENUM: 'scheduled', 'posting', 'completed', 'failed').
+2.  **Triển khai API tạo lịch đăng**: Endpoint `/api/v1/schedules/` (POST) nhận `post_management_id`, `scheduled_at`, và các thông tin cần thiết khác để tạo một lịch đăng mới cho một bài viết đã soạn.
+3.  **Triển khai API quản lý lịch đăng**: Liệt kê lịch (`GET /schedules/`), chỉnh sửa thời gian lịch đăng (`PUT /schedules/{schedule_id}`), xóa lịch đăng (`DELETE /schedules/{schedule_id}`).
+4.  **Triển khai lên lịch đăng định kỳ (Tùy chọn nâng cao, có thể bỏ qua ban đầu)**: Nếu cần, xem xét tích hợp thư viện xử lý cron expression hoặc logic lặp lại.
+5.  **Triển khai logic xử lý múi giờ**: Đảm bảo tất cả thời gian `scheduled_at` được lưu trữ và xử lý nhất quán (khuyến nghị dùng UTC trong DB) và API có thể nhận/trả về thời gian theo múi giờ của người dùng nếu cần (thông qua header hoặc config người dùng).
+
+# Test Strategy:
+1.  Kiểm tra API tạo, xem, sửa, xóa lịch đăng bài thành công.
+2.  Kiểm tra việc lên lịch với thời gian trong quá khứ, tương lai.
+3.  Kiểm tra xử lý múi giờ (nếu có triển khai chuyển đổi).
+
+# Subtasks:
+## 1. Thiết kế/Cập nhật mô hình dữ liệu cho `Schedules` (hoặc tích hợp vào `PostsManagement`) [pending]
+### Dependencies: None
+### Description: Quyết định cách lưu trữ thông tin lịch đăng. Nếu là bảng riêng, định nghĩa model `Schedule`. Nếu tích hợp, đảm bảo `PostsManagement` có đủ trường.
+### Details:
+Nếu bảng riêng: `id`, `post_management_id`, `social_account_id`, `scheduled_at`, `status`. Tạo migration. Nếu tích hợp vào `PostsManagement`: Thêm các trường: `scheduled_at_override` (TIMESTAMPZ, cho phép ghi đè lịch chung), `specific_schedule_status_facebook` (ENUM), `specific_schedule_status_youtube` (ENUM) etc. Ưu tiên tích hợp vào `PostsManagement` cho đơn giản ban đầu: thêm `scheduled_time` (TIMESTAMP WITH TIME ZONE), `schedule_status` (VARCHAR: 'pending_schedule', 'scheduled', 'posting', 'posted_all', 'failed_partial', 'user_cancelled').
+
+## 2. Triển khai API Backend để tạo và quản lý lịch đăng [pending]
+### Dependencies: 6.1
+### Description: Xây dựng các API endpoints để người dùng đặt lịch, xem, sửa, hủy lịch cho các bài đăng trong `PostsManagement`.
+### Details:
+Ví dụ: `POST /api/v1/posts-management/{post_id}/schedule` (body: `scheduled_time`), `PUT /api/v1/posts-management/{post_id}/schedule` (cập nhật `scheduled_time`), `DELETE /api/v1/posts-management/{post_id}/schedule` (xóa lịch, đặt `scheduled_time` = NULL, `schedule_status` = 'draft').
+
+## 3. Xử lý logic múi giờ trong API [pending]
+### Dependencies: 6.2
+### Description: Đảm bảo API nhận đầu vào thời gian có thông tin múi giờ, và lưu trữ trong DB dưới dạng UTC.
+### Details:
+Sử dụng Pydantic để validate datetime string có timezone. Chuyển đổi sang UTC trước khi lưu. Khi trả về, có thể giữ UTC hoặc chuyển đổi lại nếu có thông tin timezone của user.
+
+## 4. Kiểm thử chức năng lên lịch [pending]
+### Dependencies: 6.2, 6.3
+### Description: Test các trường hợp tạo lịch, sửa lịch, hủy lịch, và các ràng buộc về thời gian.
+### Details:
+Kiểm tra không cho đặt lịch trong quá khứ (trừ khi có lý do). Đảm bảo trạng thái `schedule_status` được cập nhật đúng.
+

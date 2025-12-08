@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "generatedAt": "2025-05-30T02:51:04.531Z",
+    "cho khách hàng tuỳ chỉnh system prompt":"tuỳ chỉnh system prompt",
+    "tasksAnalyzed": 10,
+    "totalTasks": 10,
+    "analysisCount": 10,
+    "thresholdScore": 5,
+    "projectName": "Taskmaster",
+    "usedResearch": false
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Thiết lập cấu trúc dự án và cơ sở dữ liệu",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down each step of setting up the project structure and database into smaller tasks, such as creating directory structures, configuring environment files, and setting up individual database tables.",
+      "reasoning": "This task involves multiple complex steps, including setting up a project structure, configuring a database, and writing migration scripts, which require detailed attention and expertise."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Xây dựng hệ thống xác thực và quản lý người dùng",
+      "complexityScore": 9,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Divide the task into subtasks for each authentication and user management feature, such as registration, login, JWT handling, and password recovery.",
+      "reasoning": "Implementing a robust authentication system involves several security-sensitive components and requires integration with the database and middleware."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Tích hợp xác thực với các nền tảng mạng xã hội",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Create subtasks for each social media platform integration, token management, and refresh token functionality.",
+      "reasoning": "OAuth integration with multiple platforms involves understanding different APIs and securely managing tokens, which adds complexity."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Quản lý tải lên và lưu trữ media",
+      "complexityScore": 9,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down the task into subtasks for cloud storage integration, media upload, processing, and management.",
+      "reasoning": "Handling media files involves integration with cloud services, processing media, and ensuring efficient storage and retrieval, which are complex operations."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Soạn thảo và quản lý nội dung bài đăng",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Divide the task into subtasks for designing data models, implementing draft and post management, and linking posts with media.",
+      "reasoning": "Managing post content involves creating flexible data models and ensuring seamless integration with media, requiring careful planning."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Lên lịch đăng bài",
+      "complexityScore": 7,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Create subtasks for data model design, API implementation, and handling time zones and recurring schedules.",
+      "reasoning": "Scheduling posts involves complex logic for time management and recurring events, which requires precise implementation."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Tích hợp API Facebook cho đăng bài",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down the task into subtasks for each type of content posting and error handling for Facebook, Instagram, and Threads.",
+      "reasoning": "Integrating with multiple social media platforms and handling different content types increases the complexity of the task."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Tích hợp API YouTube cho đăng bài",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the task into subtasks for API wrapper creation, video upload, metadata management, and error handling.",
+      "reasoning": "YouTube integration requires understanding its API and managing video uploads and metadata, which are moderately complex tasks."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Triển khai hệ thống đăng bài tự động",
+      "complexityScore": 9,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Create subtasks for worker design, queue management, scheduling, and logging for automated posting.",
+      "reasoning": "Automating post scheduling and execution involves complex coordination between scheduling, queuing, and error handling systems."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Theo dõi và báo cáo trạng thái đăng bài",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the task into subtasks for data model design, API implementation, notification setup, and report generation.",
+      "reasoning": "Tracking and reporting post status involves data management and user notification systems, which require careful implementation."
+    }
+  ]
+}
