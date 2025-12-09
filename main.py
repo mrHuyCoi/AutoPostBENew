@@ -57,6 +57,7 @@ from app.controllers import (
     user_sync_url_controller,
     chatbot_js_settings_controller,
     user_device_from_url_router,
+    material_controller
 )
 from app.controllers.device_storage_controller import router as storage_router
 from fastapi import APIRouter
@@ -148,6 +149,7 @@ app.include_router(order_chatcustom_controller.router, prefix="/api/v1", tags=["
 app.include_router(user_sync_url_controller, prefix="/api/v1", tags=["User Sync URL"])
 app.include_router(user_device_from_url_router, prefix="/api/v1", tags=["User Devices From URL"])
 app.include_router(chatbot_js_settings_controller.router, prefix="/api/v1", tags=["Chatbot JS Settings"])
+app.include_router(material_controller.router, prefix="/api/v1", tags=["Materials"])
 
 
 @app.get("/")
